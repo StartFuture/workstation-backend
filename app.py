@@ -1,6 +1,7 @@
 import dao as Bank
 import defs_workstation as function
 from flask import Flask, redirect, url_for, session, render_template, request
+import random
 
 app = Flask(__name__)
 
@@ -27,8 +28,12 @@ def autenticar():
         if name_bank:
 
             if password == password_bank:
-                session['logged_in_user'] = name_bank
-                return redirect(url_for("home"))
+                cod = random.randint(111111,999999)
+                function.send_email(email, cod)
+                cod_user = request.form['cod_user']
+                if cod_user == cod:
+                    session['usuario_logado'] = name_bank
+                    return redirect(url_for("home"))
 
             return redirect(url_for("login"))
 
@@ -41,13 +46,17 @@ def autenticar():
             cpf = request.form['user']
             password = request.form['senha']
 
-            password_bank, name_bank = Bank.query_exist_cpf(cpf)
+            password_bank, name_bank, email_bank = Bank.query_exist_cpf(cpf)
 
             if name_bank:
 
                 if password == password_bank:
-                    session['logged_in_user'] = name_bank
-                    return redirect(url_for("home"))
+                    cod = random.randint(111111,999999)
+                    function.send_email(email_bank, cod)
+                    cod_user = request.form['cod_user']
+                    if cod_user == cod:
+                        session['usuario_logado'] = name_bank
+                        return redirect(url_for("home"))
 
                 return redirect(url_for("login"))
 
@@ -58,13 +67,18 @@ def autenticar():
             cnpj = request.form['user']
             password = request.form['senha']
 
-            password_bank, name_bank = Bank.query_exist_cnpj(cnpj)
+            password_bank, name_bank, email_bank = Bank.query_exist_cnpj(cnpj)
 
             if name_bank:
 
                 if password == password_bank:
-                    session['logged_in_user'] = name_bank
-                    return redirect(url_for("home"))
+                    cod = random.randint(111111,999999)
+                    function.send_email(email_bank, cod)
+                    cod_user = request.form['cod_user']
+                    if cod_user == cod:
+                        session['usuario_logado'] = name_bank
+                        return redirect(url_for("home"))
+                    
 
                 return redirect(url_for("login"))
 

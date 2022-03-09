@@ -79,7 +79,8 @@ def query_exist_cpf(cpf):
         for info in list_user:
             password = info['senha']
             name = info['nome']
-            return password, name
+            email = info['email']
+            return password, name, email
 
 
 def query_exist_cnpj(cnpj):
@@ -91,7 +92,8 @@ def query_exist_cnpj(cnpj):
         for info in list_user:
             password = info['senha']
             name = info['nome']
-            return password, name
+            email = info['email']
+            return password, name, email
 
 
 def verify_scheduling(start_date, start_hour, final_hour, final_date, id_box):
