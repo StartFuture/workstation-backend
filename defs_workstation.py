@@ -111,7 +111,7 @@ def date_conversor(start_date, final_date):
     return start_date, final_date
     
 
-def send_email(client_email, cod):  
+def send_email(client_email, cod):
     load_dotenv()
     senha = os.environ.get('SENHA')
     corpo_email = f"""
