@@ -111,7 +111,7 @@ def date_conversor(start_date, final_date):
     return start_date, final_date
     
 
-def send_email(client_email, cod):  
+def send_email(client_email, cod):
     load_dotenv()
     senha = os.environ.get('SENHA')
     corpo_email = f"""
@@ -121,7 +121,7 @@ def send_email(client_email, cod):
     """
 
     msg = email.message.Message()
-    msg['Subject'] = "Voce é lindo"
+    msg['Subject'] = "Código de verificação"
     msg['From'] = 'WorkStation.box.email@gmail.com'
     msg['To'] = client_email
     password = senha
@@ -135,3 +135,4 @@ def send_email(client_email, cod):
         s.login(msg['From'], password)
         s.sendmail(msg['From'], [msg['To']], msg.as_string().encode('utf-8'))
         print('Email enviado')
+        

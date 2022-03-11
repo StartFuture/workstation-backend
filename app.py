@@ -34,7 +34,9 @@ def autenticar():
                 if cod_user == cod:
                     session['usuario_logado'] = name_bank
                     return redirect(url_for("home"))
-
+                else:
+                    return redirect(url_for("login"))
+                
             return redirect(url_for("login"))
 
         return redirect(url_for("login"))
@@ -57,7 +59,9 @@ def autenticar():
                     if cod_user == cod:
                         session['usuario_logado'] = name_bank
                         return redirect(url_for("home"))
-
+                    else:
+                        return redirect(url_for("login"))
+                    
                 return redirect(url_for("login"))
 
             return redirect(url_for("login"))
@@ -78,8 +82,9 @@ def autenticar():
                     if cod_user == cod:
                         session['usuario_logado'] = name_bank
                         return redirect(url_for("home"))
+                    else:
+                        return redirect(url_for("login"))
                     
-
                 return redirect(url_for("login"))
 
             return redirect(url_for("login"))
