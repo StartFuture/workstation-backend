@@ -121,7 +121,7 @@ def send_email(client_email, cod):
     """
 
     msg = email.message.Message()
-    msg['Subject'] = "Voce é lindo"
+    msg['Subject'] = "Código de verificação"
     msg['From'] = 'WorkStation.box.email@gmail.com'
     msg['To'] = client_email
     password = senha
@@ -135,3 +135,4 @@ def send_email(client_email, cod):
         s.login(msg['From'], password)
         s.sendmail(msg['From'], [msg['To']], msg.as_string().encode('utf-8'))
         print('Email enviado')
+        
