@@ -16,6 +16,40 @@ def login():
     return render_template('login.html')
 
 
+@app.route("/cadastro.html")
+def cadastro():
+    return render_template("cadastro.html")
+
+
+@app.route("/preços")
+def precos():
+    return render_template('precos.html')
+
+
+@app.route("/about")
+def about():
+    return render_template('about.html')
+
+
+@app.route("/perfil")
+def perfil():
+    return render_template("perfil.html")
+
+@app.route("/blog")
+def blog():
+    return render_template("blog.html")
+
+
+@app.route("/boxes")
+def boxes():
+    return render_template("boxes.html")
+
+
+@app.route("/minhas_compras")
+def minhas_compras():
+    return render_template("compras.html")
+
+
 @app.route("/autenticate", methods=['POST'])
 def autenticar():
     if is_email := function.check(request.form['user']):
@@ -88,11 +122,6 @@ def autenticar():
                 return redirect(url_for("login"))
 
             return redirect(url_for("login"))
-
-
-@app.route("/register")
-def register():
-    return render_template("register.html")
 
 
 @app.route("/create", methods=['POST'])
