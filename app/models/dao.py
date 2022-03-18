@@ -2,6 +2,7 @@ import mysql.connector
 import defs_workstation as Function
 import logging
 import os
+import re
 
 NAME = os.environ.get('NAME')
 PASSWORD = ''
@@ -88,28 +89,29 @@ class DataBaseUser:
                 except Exception as erro:
                     logging.error(erro)
     
-    def save_user_identification(id_user, identity, type_identity):
-        if type_identity not in ['cpf', 'cnpj']:
-            raise Exception('Tipo de identidade invalido')
+    def save_user_identification(id_user, identity):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
-            if type_identity == 'cpf':
+            if len(identity) == 11 or re.match(r"^\d{3}\.\d{3}\.\d{3}-\d{2}$", identity):
                 query_identity = f"""
                 insert into info_user_cpf(cpf, id_user)
                 values
                 ('{identity}', '{id_user}')
                 """
-            else:
+                cursor.execute(query_identity)
+            elif len(identity) == 14 or re.match(r"^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$", identity):
                 query_identity = f"""
                 insert into info_user_cnpj(cnpj, id_user)
                 values
                 ('{identity}', '{id_user}')
                 """
-                    
+                cursor.execute(query_identity)
+            else:
+                raise Exception('error in identity')
             cursor.execute(query_identity)
                 
 
 
-    def save_user(name, last_name, email, cellphone, birthdate, password, identity, type_identity):
+    def save_user(name, last_name, email, cellphone, birthdate, password, identity):
         # Save Basic infos
         DataBaseUser.save_user_infos(name, last_name, email, cellphone, birthdate, password)
         
@@ -117,7 +119,7 @@ class DataBaseUser:
         id_user = DataBaseUser.get_user_id_by_email(email)
         
         # Save identification
-        DataBaseUser.save_user_identification(id_user, identity, type_identity)
+        DataBaseUser.save_user_identification(id_user, identity)
 
 
     def search_pj(cnpj, email):
@@ -235,7 +237,7 @@ class DataBaseBox:
         db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
 
         if db and cursor:
-            cursor.execute(f"""so elect * from locaca
+            cursor.execute(f"""select * from locacao
     where {start_date} >= datainicio and {final_date} <= datafim 
     and {start_hour} >= horainicio or {final_hour} <= horafim
     and id_box = '{id_box}';""")
