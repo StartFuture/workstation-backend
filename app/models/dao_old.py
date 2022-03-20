@@ -22,7 +22,7 @@ def search(cpf, email):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
         cursor.execute(
-            f"""select * from usuario where cpf = '{cpf}' or email = '{email}'""")
+            f"""select * from usuarios where cpf = '{cpf}' or email = '{email}'""")
         if has := cursor.fetchall():
             return True
         return False
@@ -32,7 +32,7 @@ def search(cpf, email):
 def save_user(name, sobrenome, email, cpf, telefone, data_nasc, senha):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
-        cursor.execute(f"""insert into usuarios 
+        cursor.execute(f"""insert into usuarioss 
         values (default, '{name}','{sobrenome}','{cpf}', '{data_nasc}', '{telefone}','{email}', '{senha}');""")
         db.commit()
         db.close()
@@ -42,7 +42,7 @@ def search_pj(cnpj, email):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
         cursor.execute(
-            f"""select * from usuario where cpf = '{cnpj}' or email = '{email}';""")
+            f"""select * from usuarios where cpf = '{cnpj}' or email = '{email}';""")
         if has := cursor.fetchall():
             return True
         return False
@@ -51,7 +51,7 @@ def search_pj(cnpj, email):
 def save_user_pj(name, sobrenome, telefone, email, cnpj, data_nasc, senha):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
-        cursor.execute(f"""insert into usuarios 
+        cursor.execute(f"""insert into usuarioss 
         values (default, '{name}','{sobrenome}','{cnpj}', '{data_nasc}', '{telefone}','{email}', '{senha}');""")
         db.commit()
         db.close()
@@ -60,7 +60,7 @@ def save_user_pj(name, sobrenome, telefone, email, cnpj, data_nasc, senha):
 def query_exist_email(email):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
-        cursor.execute(f"""select * from usuario where email = '{email}'""")
+        cursor.execute(f"""select * from usuarios where email = '{email}'""")
         if not (list_user := cursor.fetchall()):
             return None, None
         for info in list_user:
@@ -72,27 +72,36 @@ def query_exist_email(email):
 def query_exist_cpf(cpf):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
-        cursor.execute(f"""select * from usuario where cpf = '{cpf}'""")
-        if not (list_user := cursor.fetchall()):
-            return None, None, None
-        for info in list_user:
-            password = info['senha']
-            name = info['nome']
-            email = info['email']
-            return password, name, email
+        cursor.execute(f"""select * from info_user_cpf where cpf = '{cpf}'""")
+        cpf = cursor.fetchall()
+        if cpf:
+            for value in cpf:
+                id_user = value['id_user']
 
+            cursor.execute(f"""select * from usuarios where id_user = '{id_user}' """)
+            values = cursor.fetchall()
+            for value in values:
+                senha = value['senha']
+                nome = value['nome']
+                email = value['email']
+            return senha, nome, email
 
 def query_exist_cnpj(cnpj):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
-        cursor.execute(f"""select * from usuario where cnpj = '{cnpj}'""")
-        if not (list_user := cursor.fetchall()):
-            return None, None, None
-        for info in list_user:
-            password = info['senha']
-            name = info['nome']
-            email = info['email']
-            return password, name, email
+        cursor.execute(f"""select * from info_user_cnpj where cnpj = '{cnpj}'""")
+        cnpj = cursor.fetchall()
+        if cnpj:
+            for value in cnpj:
+                id_user = value['id_user']
+
+            cursor.execute(f"""select * from usuarios where id_user = '{id_user}' """)
+            values = cursor.fetchall()
+            for value in values:
+                senha = value['senha']
+                nome = value['nome']
+                email = value['email']
+            return senha, nome, email
 
 
 def verify_scheduling(start_date, start_hour, final_hour, final_date, id_box):
@@ -167,7 +176,7 @@ def delete_user(id_user):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
         cursor.execute(f"""
-        delete from usuario where id_user = '{id_user}';               
+        delete from usuarios where id_user = '{id_user}';               
         """)
         db.commit()
         db.close()
@@ -177,7 +186,7 @@ def update_user(id_user, new_name, new_lastname, new_cpf, new_birth_date, new_ce
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
         cursor.execute(f"""
-        update usuario set nome = '{new_name}', sobrenome = '{new_lastname}', cpf = '{new_cpf}',
+        update usuarios set nome = '{new_name}', sobrenome = '{new_lastname}', cpf = '{new_cpf}',
         data_nascimento = '{new_birth_date}', telefone = '{new_cell}', email = '{new_email}'
         where id_user = '{id_user}';        
         """)
@@ -188,7 +197,7 @@ def update_user(id_user, new_name, new_lastname, new_cpf, new_birth_date, new_ce
 def new_password(id_user, newpassword):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
-        cursor.execute(f"""update usuario set senha = '{newpassword}' where id_user = '{id_user}';""")
+        cursor.execute(f"""update usuarios set senha = '{newpassword}' where id_user = '{id_user}';""")
         db.commit()
         db.close()
     
@@ -197,7 +206,7 @@ def add_box(id_address, name, size, price_hour, description, activated='Y'):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
         cursor.execute(f"""
-        insert into usuario values 
+        insert into usuarios values 
         (default, {id_address}, {name}, {size}, {price_hour}, {description}, {activated})               
         """)
         db.commit()
@@ -248,7 +257,7 @@ def delete_address(id_address):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
     if db and cursor:
         cursor.execute(f"""
-        delete from usuario where id_locacao = '{id_address}';               
+        delete from usuarios where id_locacao = '{id_address}';               
         """)
         db.commit()
         db.close()

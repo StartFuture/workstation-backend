@@ -1,0 +1,18 @@
+-Plano daily:
+    se dia e hora válido
+        preço = hora*preço_por_hora
+
+
+-Plano month:
+    se dias e hora 
+        preço = hora*preço_por_hora 
+        preço_fim = preço - (preço*20/100)
+
+
+-Plano custom:
+    se pacotes validos
+        somar horas
+            preço = hora*preço_por_hora 
+            preço_fim = preço - (preço*10/100)
+                se dias e horas disponiveifa-spin
+                
