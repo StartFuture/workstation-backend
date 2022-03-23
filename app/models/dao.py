@@ -3,11 +3,13 @@ import defs_workstation as Function
 import logging
 import os
 import re
+from dotenv import load_dotenv
 
-NAME = os.environ.get('NAME')
-PASSWORD = ''
+load_dotenv()
+NAME = os.environ.get("NAME")
+PASSWORD = ""
 NAME_DB = os.environ.get("NAME_DB")
-HOST = os.environ.get('HOST')
+HOST = os.environ.get("HOST")
 
 class DataBase:
     
@@ -16,22 +18,24 @@ class DataBase:
         self.password = password
         self.host = host
         self.database = database
-
+        
     def __enter__(self):
         try:
             self.db = mysql.connector.connect(user=self.user, password=self.password,
                                         host=self.host, database=self.database)
             self.cursor = self.db.cursor(dictionary=True)
-        except:
-            return None
+        except Exception as erro:
+            print(erro)
         else:
             return self.cursor
 
     def __exit__(self, *args):
-        if self.db:
+        try:
             self.db.commit()
             self.db.close()
-
+        except Exception as erro:
+            print(erro)
+            
 class DataBaseUser:        
     
     def search_by_cpf_or_email(cpf, email):
@@ -68,21 +72,29 @@ class DataBaseUser:
     def get_user_id_by_email(email):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
-                cursor.execute(
-                               f"""
+                query = f"""
                                select id_user from usuarios where email = '{email}';
                                """
-                               )
-                return cursor.fetchone()['id_user']
+                
+                cursor.execute(query)
+                
+                value = cursor.fetchone()
 
-    def save_user_infos(name, last_name, email, cellphone, birthdate, password):
+                if value:
+                    
+                    value = value['id_user']
+                else:
+                    value = None
+                    
+                return value
+
+    def save_user_infos(name, last_name, email, cellphone, birthdate, sex, password):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 query_user = f"""
                 insert into usuarios
-                (nome, sobrenome, data_nascimento, telefone, email, senha)
                 values 
-                ('{name}', '{last_name}', '{birthdate}', '{cellphone}','{email}', '{password}')
+                (default,'{name}', '{last_name}', '{sex}','{birthdate}', '{cellphone}','{email}', '{password}');
                 """
                 try:
                     cursor.execute(query_user)
@@ -97,30 +109,34 @@ class DataBaseUser:
                 values
                 ('{identity}', '{id_user}')
                 """
-                cursor.execute(query_identity)
             elif len(identity) == 14 or re.match(r"^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$", identity):
                 query_identity = f"""
                 insert into info_user_cnpj(cnpj, id_user)
                 values
                 ('{identity}', '{id_user}')
                 """
-                cursor.execute(query_identity)
+                print('cnpj')
+                
             else:
                 raise Exception('error in identity')
+            
             cursor.execute(query_identity)
                 
 
 
-    def save_user(name, last_name, email, cellphone, birthdate, password, identity):
+    def save_user(name, last_name, email, cellphone, birthdate, password, identity, sex):
         # Save Basic infos
-        DataBaseUser.save_user_infos(name, last_name, email, cellphone, birthdate, password)
-        
-        # Get id_user
-        id_user = DataBaseUser.get_user_id_by_email(email)
-        
-        # Save identification
-        DataBaseUser.save_user_identification(id_user, identity)
-
+        try:
+            DataBaseUser.save_user_infos(name, last_name, email, cellphone, birthdate, sex, password)
+        except Exception as erro:
+            return False
+        else:
+            # Get id_user
+            id_user = DataBaseUser.get_user_id_by_email(email)
+            print(id_user)
+            # Save identification
+            DataBaseUser.save_user_identification(id_user, identity)
+            return True
 
     def search_pj(cnpj, email):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
@@ -452,3 +468,7 @@ class DataBaseBox:
                 return True
 
 
+
+DataBaseUser.get_user_id_by_email('mateustoni04@gmail.com')
+
+# select id_user from usuarios where email = 'mateustoni04@gmail.com';

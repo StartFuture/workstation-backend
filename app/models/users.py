@@ -12,11 +12,12 @@ from flask_jwt_extended import jwt_required, create_access_token
 
 class User(Resource):
     
-    def __init__(self, name, lastname, birthday, phone, email, password, identity):
+    def __init__(self, name, lastname, birthday, sex, phone, email, password, identity):
         
         self.name = name
         self.lastname = lastname
         self.birthday = birthday
+        self.sex = sex
         self.phone = phone
         self.email = email
         self.password = password
@@ -32,6 +33,7 @@ class CreateUser(Resource):
         argumentos.add_argument('nome')
         argumentos.add_argument('sobrenome')
         argumentos.add_argument('data_aniversario')
+        argumentos.add_argument('sexo')
         argumentos.add_argument('telefone')
         argumentos.add_argument('email')
         argumentos.add_argument('senha')
@@ -47,12 +49,22 @@ class CreateUser(Resource):
         
         else:
             user = User(dados['nome'], dados['sobrenome'], 
-                        dados['data_aniversario'], dados['telefone'], 
+                        dados['data_aniversario'],dados['sexo'] ,dados['telefone'], 
                         dados['email'], generate_password_hash(dados['senha']),
                         dados['cpf_cnpj'])
-            create = dao.DataBaseUser.save_user(user.name, user.lastname,
-                                       user.birthday, user.phone,
-                                user.email, user.password, user.identity)
+            
+            create = dao.DataBaseUser.save_user(
+                name=user.name,
+                last_name=user.lastname,
+                email=user.email,
+                cellphone=user.phone,
+                birthdate=user.birthday,
+                password=user.password,
+                identity=user.identity,
+                sex=user.sex,
+            )
+            
+            
             if create:
                 return {'msg': 'User create'}, 200
             else:
@@ -155,6 +167,8 @@ class TwoFactorLogin(Resource):
         cod = randint(111111, 9999999)
         
         function.send_email(session['email_user'], cod)
+        
+        print(session['email_user'])
         
         return{
             'verification_code': cod
