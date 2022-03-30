@@ -348,3 +348,6 @@ def extra_hour(user_date_scheduling_id, how_many_hours):
             db.commit()
             db.close()
             return True
+
+
+print(open_db(NAME, PASSWORD, HOST, NAME_DB))
