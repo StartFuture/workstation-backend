@@ -115,8 +115,6 @@ class DataBaseUser:
                 values
                 ('{identity}', '{id_user}')
                 """
-                print('cnpj')
-                
             else:
                 raise Exception('error in identity')
             
@@ -133,7 +131,6 @@ class DataBaseUser:
         else:
             # Get id_user
             id_user = DataBaseUser.get_user_id_by_email(email)
-            print(id_user)
             # Save identification
             DataBaseUser.save_user_identification(id_user, identity)
             return True
@@ -249,86 +246,29 @@ class DataBaseUser:
 
 class DataBaseBox:
 
-    def verify_scheduling(start_date, start_hour, final_hour, final_date, id_box):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-
-        if db and cursor:
-            cursor.execute(f"""select * from locacao
-    where {start_date} >= datainicio and {final_date} <= datafim 
-    and {start_hour} >= horainicio or {final_hour} <= horafim
-    and id_box = '{id_box}';""")
-        if cursor:
-            return not cursor.fetchall()
-
-
-    def save_scheduling(start_date, start_hour, final_hour, final_date, id_user, id_box):
-
-        start_date, final_date = Function.date_conversor(start_date, final_date)
-
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-
-        if db and cursor:
-            cursor.execute(f"""insert into locacao 
-            values (default, {start_date},{start_hour},{final_hour},{final_date},{id_user},{id_box});""")
-
-
-    def show_all_scheduling():
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute('select * from locacao')
-            return cursor.fetchall()
-        return False
-
-
-    def show_scheduling_box(id_box):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f"select * from locacao where id_box = '{id_box}'")
-            return cursor.fetchall()
-        return False
-
-
-    def show_scheduling_user(id_user):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f'select * from locacao where id_user = "{id_user}"')
-            return cursor.fetchall()
-        return False
-
-
-    def delete_scheduling(id_scheduling):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f"""
-            delete from locacao where id_locacao = '{id_scheduling}'         
-            """)
-            db.commit()
-            db.close()
-
-
-    def update_scheduling(id_scheduling, new_start_date, new_start_hour, new_final_hour, new_final_date):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f"""
-            update locacao set datainicio = '{new_start_date}', horainicio = '{new_start_hour}',
-            horafim = '{new_final_hour}', datafim = '{new_final_date}' where id_locaco = '{id_scheduling}';
-            """)
-            db.commit()
-            db.close()
-
-
-    
+    def show_all_boxes():
+        query = """
+        select * from box;
+        """
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                values = cursor.fetchall()
+                if values:
+                    return values
         
+    def add_box(id_address, name, price_hour, description, width, heigth, depth, activated='Y'):
+        query = f"""
+        insert into box 
+        values(default, '{id_address}', '{name}', 
+        '{price_hour}', '{description}', 
+        '{activated}', '{heigth}', '{width}', 
+        '{depth}');
+        """
         
-    def add_box(id_address, name, size, price_hour, description, activated='Y'):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f"""
-            insert into usuarios values 
-            (default, {id_address}, {name}, {size}, {price_hour}, {description}, {activated})               
-            """)
-            db.commit()
-            db.close()
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
             
 
     def ativate_box(id_box):
@@ -361,7 +301,34 @@ class DataBaseBox:
             db.commit()
             db.close()
 
-
+    def show_address():
+        query = """
+        select * from endereco;
+        """
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                values = cursor.fetchall()
+                if values:
+                    return values
+    
+                    
+    def get_id_address_by_cep(cep):
+        query = f"""
+        select id_endereco 
+        from endereco 
+        where cep = '{cep}';
+        """
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                values = cursor.fetchall()
+                if values:
+                    for value in values:
+                        return value['id_endereco']
+    
+      
     def add_address(cep, street, number, complement, district, city, state):
         db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
         if db and cursor:
@@ -443,32 +410,7 @@ class DataBaseBox:
             db.close()
 
 
-    def extra_hour(user_date_scheduling_id, how_many_hours):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f"""select * from locacao 
-            where id_locacao = '{user_date_scheduling_id}';""")
-            list_location = cursor.fetchall()
-            for dict_location in list_location:
-                start_date = dict_location['datainicio']
-                start_hour = dict_location['horainicio']
-                final_hour = dict_location['horafim']
-                final_date = dict_location['datafim']
-                cursor.execute(f"""select * from locacao 
-                where {start_date} >= datainicio and {final_date} <= datafim 
-                and {start_hour} >= horainicio or {final_hour} <= horafim;""")
-                list_location = cursor.fetchall()
-                if len(list_location) >= 2:
-                    return False
-                dict_location['horafim'] += how_many_hours
-                cursor.execute(f"""update locacao set horafim = '{dict_location['horafim']}'
-                where id_locacao = '{user_date_scheduling_id}';""")
-                db.commit()
-                db.close()
-                return True
+class Scheduling():
+    
+    
 
-
-
-DataBaseUser.get_user_id_by_email('mateustoni04@gmail.com')
-
-# select id_user from usuarios where email = 'mateustoni04@gmail.com';
