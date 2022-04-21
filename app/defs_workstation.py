@@ -1,9 +1,11 @@
+import itertools
 import re
 import smtplib
 import email.message
 import os
 from dotenv import load_dotenv
 
+from models.dao import DataBaseBox
 
 def check(user):
     return bool(re.match(r"[a-zA-Z0-9]+@[a-z]+.[a-z]+.?b?r?", user))
@@ -136,3 +138,46 @@ def send_email(client_email, cod):
         s.sendmail(msg['From'], [msg['To']], msg.as_string().encode('utf-8'))
         print('Email enviado')
     
+    
+def process_data_box():
+    boxes = DataBaseBox.show_all_boxes()
+    address = DataBaseBox.show_address()
+
+    list_infos_box = []
+    list_box = []
+    list_address = []
+
+    if boxes:
+        for dict_box in boxes:
+            list_box.append(
+                {
+                    "nome": dict_box['nome'],
+                    "preco": dict_box['preco_hora'],
+                    "descricao": dict_box['descricao'],
+                    "endereco": {}
+                }
+            )
+            list_infos_box.append(
+                    {
+                        "id_box": dict_box['id_box'], 
+                        "id_endereco": dict_box['id_endereco']
+                    }
+                )
+
+    if address:
+        list_address.extend({
+                    "id_endereco": dict_address['id_endereco'],
+                    "cep": dict_address['cep'],
+                    "rua": dict_address['rua'],
+                    "numero": dict_address['numero'],
+                    "complemento": dict_address['complemento'],
+                    "bairro": dict_address['bairro'],
+                    "cidade": dict_address['cidade'],
+                    "estado": dict_address['estado']
+                } for dict_address in address)
+    for box in list_box:
+        for info, address in itertools.product(list_infos_box, list_address):
+            if info['id_endereco'] == address['id_endereco']:
+                box['endereco'] = address
+
+    return list_box

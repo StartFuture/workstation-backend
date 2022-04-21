@@ -3,8 +3,7 @@ from flask_restful import Resource, reqparse
 from flask import request, session
 import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
-from . import dao_old as Bank
-from . import dao
+from . import dao as Bank
 from flask_jwt_extended import jwt_required, create_access_token
 
 
@@ -41,7 +40,7 @@ class CreateUser(Resource):
         
         dados = argumentos.parse_args()
         
-        if dao.DataBaseUser.verify_user_exist(dados['cpf_cnpj'], dados['email'], dados['telefone']):
+        if Bank.DataBaseUser.verify_user_exist(dados['cpf_cnpj'], dados['email'], dados['telefone']):
         
             return {
                 'msg': 'User alredy exist'
@@ -53,7 +52,7 @@ class CreateUser(Resource):
                         dados['email'], generate_password_hash(dados['senha']),
                         dados['cpf_cnpj'])
             
-            create = dao.DataBaseUser.save_user(
+            create = Bank.DataBaseUser.save_user(
                 name=user.name,
                 last_name=user.lastname,
                 email=user.email,
@@ -90,11 +89,11 @@ class UserLogin(Resource):
         
         if is_email:
             
-            db_password, db_email = Bank.query_exist_email(user_login)
+            db_password, db_email = Bank.DataBaseUser.query_exist_email(user_login)
             
             if db_email and db_password:
                 
-                if db_password == password_user:  #check_password_hash(db_password, password_user):
+                if check_password_hash(db_password, password_user):
                     session['email_user'] = user_login
                     return {
                         'msg': 'sucessfull'
@@ -118,7 +117,7 @@ class UserLogin(Resource):
             
             if is_cpf:
                 
-                password, name, email = Bank.query_exist_cpf(dados['user_login'])
+                password, name, email = Bank.DataBaseUser.query_exist_cpf(dados['user_login'])
                 
                 if password and name and email:
                     
@@ -139,7 +138,7 @@ class UserLogin(Resource):
                                  }, 400 
             else:
                 
-                password, name, email = Bank.query_exist_cnpj(dados['user_login'])
+                password, name, email = Bank.DataBaseUser.query_exist_cnpj(dados['user_login'])
                 
                 if password and name and email:
                     if check_password_hash(password, dados['password_user']):
@@ -187,7 +186,7 @@ class TwoFactorLogin(Resource):
         
         if str(cod) == str(cod_user):
             if email:
-                id_user = dao.DataBaseUser.get_user_id_by_email(email=dados['email'])
+                id_user = Bank.DataBaseUser.get_user_id_by_email(email=dados['email'])
             
                 if id_user:
                     access_token = create_access_token(identity=id_user)
@@ -208,3 +207,65 @@ class TwoFactorLogin(Resource):
             return{
                 'msg': 'erros in code 3'
             }
+            
+class Recover_Password_Email(Resource):
+    
+    def post(self):
+        
+        argumentos = reqparse.RequestParser()
+        
+        argumentos.add_argument("email")
+        
+        dados = argumentos.parse_args()
+        
+        email_user = dados['email']
+        
+        if Bank.DataBaseUser.query_exist_email(email_user):
+            global cod2 
+            from random import randint
+            cod2 = randint(111111, 9999999)
+            function.send_email(email_user, cod)
+            return {
+                "msg": "send code",
+                "email": email_user
+            }
+            
+    
+class Recover_Password_Code(Resource):
+    
+    def post(self):
+        argumentos = reqparse.RequestParser()
+
+        argumentos.add_argument("cod_user_recover")
+        argumentos.add_argument("email_user")
+
+        dados = argumentos.parse_args()
+
+        cod_user_recover = dados['cod_user_recover']
+        if cod_user_recover == cod2:
+            email_user = dados['email_user']
+
+
+            return {
+                "msg": "sucessfull",
+                "email": email_user
+            }
+    
+class NewPassword(Resource):
+    
+    def post(self):
+        
+        argumentos = reqparse.RequestParser()
+        
+        argumentos.add_argument("nova_senha")
+        argumentos.add_argument("email_user")
+        
+        dados = argumentos.parse_args()
+        
+        new_password = dados['nova_senha']
+        email_user = dados['email_user']
+        
+        id_user = Bank.DataBaseUser.get_user_id_by_email(email_user)
+        
+        
+        Bank.DataBaseUser.new_password(id_user, generate_password_hash(new_password))
