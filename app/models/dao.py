@@ -245,6 +245,21 @@ class DataBaseUser:
                 
 
 class DataBaseBox:
+    
+
+    def get_name_box_by_id(id_box):
+        
+        query = f"""
+        select nome from box 
+        where id_box = '{id_box}';
+        """
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                values = cursor.fetchall()
+                if values:
+                    return values
 
     def show_all_boxes():
         query = """
@@ -312,7 +327,20 @@ class DataBaseBox:
                 if values:
                     return values
     
-                    
+    def get_address_by_id(id_address):
+        query = f"""
+        select * from endereco 
+        where id_endereco = '{id_address}';
+        """
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                values = cursor.fetchall()
+                if values:
+                    return values
+        
+                
     def get_id_address_by_cep(cep):
         query = f"""
         select id_endereco 
@@ -412,5 +440,113 @@ class DataBaseBox:
 
 class Scheduling():
     
+    @staticmethod
+    def get_id_scheduling_by_id_user(id_user):
+        query = f"""
+        select id_locacao from locacao 
+        where id_user = '{id_user}';
+        """
+
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                id_scheduling = cursor.fech
+    
+    @staticmethod
+    def verify_scheduling(start_date, start_hour, final_hour, final_date, id_box):
+        query = f"""
+                select * from locacao
+                where {start_date} >= datainicio and {final_date} <= datafim 
+                and {start_hour} >= horainicio or {final_hour} <= horafim
+                and id_box = '{id_box}';
+                """
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                schedule = cursor.fetchall()
+
+                return not schedule
+            
+                
+
+    @staticmethod
+    def save_scheduling(start_date, start_hour, final_hour, final_date, id_user, id_box):
+
+        start_date, final_date = Function.date_conversor(start_date, final_date)
+        
+        query = f"""insert into locacao 
+                    values (default, {start_date},
+                    {start_hour},{final_hour},
+                    {final_date},{id_user},
+                    {id_box});
+                    """
+                    
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                
+
+
+    @staticmethod
+    def show_all_scheduling():
+        
+        query = "select * from locacao;"
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+        
+                return cursor.fetchall()
+        
+
+    @staticmethod
+    def show_scheduling_box(id_box):
+        
+        query = f"""
+        select * from locacao 
+        where id_box = '{id_box}';
+        """
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                return cursor.fetchall()
+        
+
+    @staticmethod
+    def show_scheduling_user(id_user):
+        
+        query = f'select * from locacao where id_user = "{id_user}"'
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                return cursor.fetchall()
+
+    @staticmethod
+    def delete_scheduling(id_scheduling):
+        
+        query = f"""
+                delete from locacao 
+                where id_locacao = '{id_scheduling}';         
+                """
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+            
+
+    @staticmethod
+    def update_scheduling(id_scheduling, new_start_date, new_start_hour, new_final_hour, new_final_date):
+        
+        query = f"""
+                update locacao set datainicio = '{new_start_date}', horainicio = '{new_start_hour}',
+                horafim = '{new_final_hour}', datafim = '{new_final_date}' where id_locaco = '{id_scheduling}';
+                """
+        
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+        
     
 

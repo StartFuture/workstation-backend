@@ -108,10 +108,12 @@ def verify_scheduling(start_date, start_hour, final_hour, final_date, id_box):
     db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
 
     if db and cursor:
-        cursor.execute(f"""so elect * from locaca
-where {start_date} >= datainicio and {final_date} <= datafim 
-and {start_hour} >= horainicio or {final_hour} <= horafim
-and id_box = '{id_box}';""")
+        cursor.execute(f"""
+                        select * from locacao
+                        where {start_date} >= datainicio and {final_date} <= datafim 
+                        and {start_hour} >= horainicio or {final_hour} <= horafim
+                        and id_box = '{id_box}';
+                        """)
     if cursor:
         return not cursor.fetchall()
 
