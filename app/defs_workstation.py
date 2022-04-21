@@ -181,3 +181,29 @@ def process_data_box():
                 box['endereco'] = address
 
     return list_box
+
+def send_password_box(client_email, senha_box):
+
+    load_dotenv()
+    senha = os.environ.get("SENHA")
+    corpo_email = f"""
+    <h1>Ola,</h1>
+    <h1>Sua senha de acesso para a box é:</h1>
+    <h2>{senha_box}</h2>
+    """
+
+    msg = email.message.Message()
+    msg['Subject'] = "Senha de acesso"
+    msg['From'] = 'WorkStation.box.email@gmail.com'
+    msg['To'] = client_email
+    password = senha
+    msg.add_header('Content-Type', 'text/html')
+    msg.set_payload(corpo_email )
+
+    if password:
+        s = smtplib.SMTP('smtp.gmail.com: 587')
+        s.starttls()
+        # Login Credentials for sending the mail
+        s.login(msg['From'], password)
+        s.sendmail(msg['From'], [msg['To']], msg.as_string().encode('utf-8'))
+        print('Email enviado')

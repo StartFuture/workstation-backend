@@ -6,7 +6,7 @@ from . import dao as Bank
 class ShowListBox(Resource):
     
     def get(self):  
-        return handle_data_box()
+        return process_data_box()
 
 class CreateBox(Resource):
     
