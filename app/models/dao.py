@@ -272,11 +272,11 @@ class DataBaseBox:
                 if values:
                     return values
         
-    def add_box(id_address, name, price_hour, description, width, heigth, depth, activated='Y'):
+    def add_box(id_address, name, price_hour, description, zone, width, heigth, depth, activated='Y'):
         query = f"""
         insert into box 
         values(default, '{id_address}', '{name}', 
-        '{price_hour}', '{description}', 
+        '{price_hour}', '{description}', {zone},
         '{activated}', '{heigth}', '{width}', 
         '{depth}');
         """

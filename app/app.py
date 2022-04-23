@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for, render_template
 from flask_restful import  Api
-from models import box, users, schedule, payments
+from models import box, users, schedule, payments, adress
 from flask_jwt_extended import JWTManager
 import os
 
@@ -23,6 +23,7 @@ api.add_resource(users.Recover_Password_Email, "/recuperar_senha_email") #mvp #O
 api.add_resource(users.Recover_Password_Code, "/recuperar_senha_codigo") #mvp #Ok
 api.add_resource(users.NewPassword, "/nova_senha") #mvp #Ok
 api.add_resource(payments.Payments, "/pagamento") #mvp #ok
+api.add_resource(adress.Create_adress, "/criar_endereco")
 
 if __name__ == "__main__":
     app.run(debug=True)
