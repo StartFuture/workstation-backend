@@ -1,3 +1,4 @@
+import logging
 from flask_restful import Resource, reqparse
 from defs_workstation import process_data_box
 from . import dao as Bank
@@ -38,8 +39,9 @@ class CreateBox(Resource):
                 depth=dados['comprimento']
             )
         except Exception as erros:
+            logging.warning(erros)
             return {
-                "msg": "Erro de Banco de dados"
+                "msg": "Erro de Banco de dados",
             }
         else:
             return {

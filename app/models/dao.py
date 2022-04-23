@@ -269,11 +269,11 @@ class DataBaseBox:
         
     def add_box(id_address, name, price_hour, description, zone, width, heigth, depth, activated='Y'):
         query = f"""
-        insert into box 
+        insert into box
         values(default, '{id_address}', '{name}', 
-        '{price_hour}', '{description}', {zone},
+        '{price_hour}', '{description}',
         '{activated}', '{heigth}', '{width}', 
-        '{depth}');
+        '{depth}', '{zone}');
         """
         
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
@@ -353,22 +353,18 @@ class DataBaseBox:
     
       
     def add_address(cep, street, number, complement, district, city, state):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f"""insert into endereco values (default, '{cep}', '{street}', '{number}',
-            '{complement}', '{district}', '{city}', '{state}')""")
-            db.commit()
-            db.close()
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""insert into endereco values (default, '{cep}', '{street}', '{number}',
+                '{complement}', '{district}', '{city}', '{state}')""")
 
 
     def delete_address(id_address):
-        db, cursor = open_db(NAME, PASSWORD, HOST, NAME_DB)
-        if db and cursor:
-            cursor.execute(f"""
-            delete from usuarios where id_locacao = '{id_address}';               
-            """)
-            db.commit()
-            db.close()
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""
+                delete from usuarios where id_locacao = '{id_address}';               
+                """)
 
 
     def update_address(id_address, cep, street, number, complement, district, city, state):
