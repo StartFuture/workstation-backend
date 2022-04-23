@@ -17,6 +17,7 @@ class CreateBox(Resource):
         argumentos.add_argument("nome")
         argumentos.add_argument("preco_hora")
         argumentos.add_argument("descricao")
+        argumentos.add_argument("zona")
         argumentos.add_argument("largura")
         argumentos.add_argument("altura")
         argumentos.add_argument("comprimento")
@@ -30,7 +31,8 @@ class CreateBox(Resource):
                 id_address=id_address, 
                 name=dados['nome'], 
                 price_hour=dados['preco_hora'], 
-                description=dados['descricao'], 
+                description=dados['descricao'],
+                zone=dados['zona'],
                 width=dados['largura'], 
                 heigth=dados['altura'], 
                 depth=dados['comprimento']
