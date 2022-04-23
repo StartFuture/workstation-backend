@@ -3,13 +3,7 @@ import defs_workstation as Function
 import logging
 import os
 import re
-from dotenv import load_dotenv
-
-load_dotenv()
-NAME = os.environ.get("NAME")
-PASSWORD = ""
-NAME_DB = os.environ.get("NAME_DB")
-HOST = os.environ.get("HOST")
+from parameters import NAME, PASSWORD, HOST, NAME_DB
 
 class DataBase:
     
@@ -22,8 +16,9 @@ class DataBase:
     def __enter__(self):
         try:
             self.db = mysql.connector.connect(user=self.user, password=self.password,
-                                        host=self.host, database=self.database)
+                                        host=self.host)
             self.cursor = self.db.cursor(dictionary=True)
+            self.cursor.execute(f'use {self.database}')
         except Exception as erro:
             print(erro)
         else:

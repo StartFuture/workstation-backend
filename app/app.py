@@ -7,8 +7,8 @@ import os
 app = Flask(__name__)
 api = Api(app)
 jwt = JWTManager(app)
-app.secret_key = os.environ.get('SECRET_KEY')
-app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRETKEY")
+app.secret_key = 'very secret key'
+app.config["JWT_SECRET_KEY"] = 'other very secret key'
 
 api.add_resource(users.UserLogin, "/autenticar") #mvp #Ok
 api.add_resource(users.CreateUser, "/criar") #mvp #Ok
