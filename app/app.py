@@ -1,6 +1,6 @@
 from flask import Flask, redirect, url_for, render_template
 from flask_restful import  Api
-from models import box, users, schedule, payments
+from .models import box, users, schedule, payments
 from flask_jwt_extended import JWTManager
 import os
 

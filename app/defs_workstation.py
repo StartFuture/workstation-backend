@@ -5,7 +5,7 @@ import email.message
 import os
 from dotenv import load_dotenv
 
-from models.dao import DataBaseBox
+from .models.dao import DataBaseBox
 
 def check(user):
     return bool(re.match(r"[a-zA-Z0-9]+@[a-z]+.[a-z]+.?b?r?", user))

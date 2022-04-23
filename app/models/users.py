@@ -1,7 +1,7 @@
 import re
 from flask_restful import Resource, reqparse
 from flask import request, session
-import defs_workstation as function
+from app import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
 from . import dao as Bank
 from flask_jwt_extended import jwt_required, create_access_token

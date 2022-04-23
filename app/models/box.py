@@ -1,5 +1,5 @@
 from flask_restful import Resource, reqparse
-from defs_workstation import process_data_box
+from app.defs_workstation import process_data_box
 from . import dao as Bank
         
         

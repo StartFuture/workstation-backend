@@ -1,5 +1,5 @@
 import mysql.connector
-import defs_workstation as Function
+from app import defs_workstation as Function
 import logging
 import os
 import re
