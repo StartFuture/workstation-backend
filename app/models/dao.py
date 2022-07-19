@@ -20,7 +20,7 @@ class DataBase:
             self.cursor = self.db.cursor(dictionary=True)
             self.cursor.execute(f'use {self.database}')
         except Exception as erro:
-            print(erro)
+            logging.critical(erro)
         else:
             return self.cursor
 
@@ -29,7 +29,7 @@ class DataBase:
             self.db.commit()
             self.db.close()
         except Exception as erro:
-            print(erro)
+            logging.critical(erro)
             
 class DataBaseUser:        
     
@@ -68,8 +68,8 @@ class DataBaseUser:
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 query = f"""
-                               select id_user from usuarios where email = '{email}';
-                               """
+                            select id_user from usuarios where email = '{email}';
+                            """
                 
                 cursor.execute(query)
                 
@@ -122,6 +122,7 @@ class DataBaseUser:
         try:
             DataBaseUser.save_user_infos(name, last_name, email, cellphone, birthdate, sex, password)
         except Exception as erro:
+            logging.critical(erro)
             return False
         else:
             # Get id_user
