@@ -5,10 +5,21 @@ import email.message
 import os
 from dotenv import load_dotenv
 
+
+import parameters
 from models.dao import DataBaseBox
 
+def convert_cod_int(cod : str):
+    cod = str(cod).strip()
+    if cod.isnumeric():
+        cod = int(cod)
+        return cod
+    else:
+        return None
+        
+
 def check(user):
-    return bool(re.match(r"[a-zA-Z0-9]+@[a-z]+.[a-z]+.?b?r?", user))
+    return bool(re.match(r"[a-zA-Z0-9\.]+@[a-z]+.[a-z]+.?b?r?", user))
 
 
 def validates(email, cpf, data):
@@ -17,7 +28,7 @@ def validates(email, cpf, data):
     if validates_cpf(cpf):
         c += 1
 
-    if re.match(r"[a-zA-Z0-9]+@[a-z]+.[a-z]+.?b?r?", email):
+    if re.match(r"[a-zA-Z0-9\.]+@[a-z]+.[a-z]+.?b?r?", email):
         c += 1
 
     if re.match(r"[0-9]{2}/[0-9]{2}/[0-9]{4}", data):
@@ -57,7 +68,7 @@ def validates_pj(email, cnpj, data):
     if validates_cnpj(cnpj):
         c += 1
 
-    if re.match(r"[a-zA-Z0-9]+@[a-z]+.[a-z]+.?b?r?", email):
+    if re.match(r"[a-zA-Z0-9\.]+@[a-z]+.[a-z]+.?b?r?", email):
         c += 1
 
     if re.match(r"[0-9]{2}/[0-9]{2}/[0-9]{4}", data):
@@ -114,8 +125,6 @@ def date_conversor(start_date, final_date):
     
 
 def send_email(client_email, cod):
-    load_dotenv()
-    senha = os.environ.get("SENHA")
     corpo_email = f"""
     <h1>Ola,</h1>
     <h1>Seu código de verificação é:</h1>
@@ -126,7 +135,7 @@ def send_email(client_email, cod):
     msg['Subject'] = "Código de verificação"
     msg['From'] = 'WorkStation.box.email@gmail.com'
     msg['To'] = client_email
-    password = senha
+    password = parameters.PASSWORD_EMAIL
     msg.add_header('Content-Type', 'text/html')
     msg.set_payload(corpo_email )
 
