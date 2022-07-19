@@ -4,7 +4,7 @@ from flask import request, session
 import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
 from . import dao as Bank
-from flask_jwt_extended import jwt_required, create_access_token
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 import logging
 
 
@@ -165,15 +165,21 @@ class UserLogin(Resource):
 class TwoFactorLogin(Resource):
     
     def get(self):
-        global cod 
         from random import randint
+        
         cod = randint(111111, 9999999)
+        cod_hash = generate_password_hash(cod)
         
-        function.send_email(session['email_user'], cod)
+        user_id = get_jwt_identity()
         
-        return{
-            'verification_code': cod
-        }
+        email = Bank.DataBaseUser.search_by_cpf_or_email(user_id)
+        
+        function.send_email(email, cod)
+        Bank.DataBaseUser.insert_two_factor(user_id, cod_hash)
+        
+        return {
+            'msg': 'Two factor code send to your email',
+        }, 200
         
     def post(self):  
         
