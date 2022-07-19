@@ -33,19 +33,22 @@ class DataBase:
             
 class DataBaseUser:        
     
-    def search_by_cpf_or_email(cpf, email):
-        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
-            if cursor:
-                query_search = f"""
-                select * from usuarios
-                where cpf = '{cpf}' 
-                or 
-                email = '{email}';
-                """
-                cursor.execute(query_search)
-                if cursor.fetchone():
-                    return True
-                return False
+    def search_by_cpf_or_email(cpf : int = None, email : str = None) -> bool:
+        if any(cpf, email): # Verify if any of the two variables is not None
+            with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+                if cursor:
+                    query_search = f"""
+                    select * from usuarios
+                    where cpf = '{cpf}' 
+                    or 
+                    email = '{email}';
+                    """
+                    cursor.execute(query_search)
+                    if cursor.fetchone():
+                        return True
+                    return False
+        else:
+            raise Exception('cpf or email is required')
         
             
     def verify_user_exist(cpf, email, telefone):
@@ -236,6 +239,28 @@ class DataBaseUser:
                 update usuarios 
                 set senha = '{newpassword}' 
                 where id_user = '{id_user}';
+                """
+                cursor.execute(query)
+                
+    def insert_two_factor(id_user, hash_code):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                query = f"""
+                insert into two_auth(id_user, cod_two_factor)
+                values ({id_user}, '{hash_code}');
+                """
+                cursor.execute(query)
+    
+    def query_two_factor(id_user):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                query = f"""
+                select cod_two_factor as hash_code from two_auth
+                where 
+                id_user = {id_user}
+                and
+                TIME_TO_SEC((TIMEDIFF(now(), `date_register`))) <= 120
+                ;
                 """
                 cursor.execute(query)
                 

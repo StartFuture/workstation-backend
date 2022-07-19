@@ -1,10 +1,9 @@
 import re
 from flask_restful import Resource, reqparse
-from flask import request, session
 import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
 from . import dao as Bank
-from flask_jwt_extended import jwt_required, create_access_token
+from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 import logging
 
 
@@ -97,7 +96,7 @@ class UserLogin(Resource):
                     id_user = Bank.DataBaseUser.get_user_id_by_email(email=user_login)
             
                     if id_user:
-                        access_token = create_access_token(identity=id_user)
+                        access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
                 
                         return {
                             'access_token': access_token
@@ -126,10 +125,14 @@ class UserLogin(Resource):
                 if password and name and email:
                     
                     if check_password_hash(password, dados['password_user']):
-                        session['email_user'] = email
-                        return {
-                            'msg': 'sucessfull',
-                        }, 200
+                        id_user = Bank.DataBaseUser.get_user_id_by_email(email=email)
+            
+                        if id_user:
+                            access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
+                    
+                            return {
+                                'access_token': access_token
+                            }, 200
                         
                     else:
                         
@@ -146,10 +149,14 @@ class UserLogin(Resource):
                 
                 if password and name and email:
                     if check_password_hash(password, dados['password_user']):
-                        session['email_user'] = email
-                        return {
-                            'msg': 'sucessfull'
-                        }, 200
+                        id_user = Bank.DataBaseUser.get_user_id_by_email(email=email)
+            
+                        if id_user:
+                            access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
+                    
+                            return {
+                                'access_token': access_token
+                            }, 200
                         
                     else:
                         
@@ -163,18 +170,21 @@ class UserLogin(Resource):
         
         
 class TwoFactorLogin(Resource):
-    
+    @jwt_required()
     def get(self):
         global cod 
         from random import randint
         cod = randint(111111, 9999999)
+        user_id = get_jwt_identity()
         
-        function.send_email(session['email_user'], cod)
+        email = Bank.DataBaseUser.search_by_cpf_or_email(user_id)
+        function.send_email('lucas.nunes.de.assis@gmail.com', cod)
         
-        return{
+        return {
             'verification_code': cod
         }
         
+    @jwt_required()
     def post(self):  
         
         argumentos = reqparse.RequestParser()
@@ -191,13 +201,13 @@ class TwoFactorLogin(Resource):
                 id_user = Bank.DataBaseUser.get_user_id_by_email(email=dados['email'])
             
                 if id_user:
-                    access_token = create_access_token(identity=id_user)
+                    access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
             
                     return {
                         'access_token': access_token
                     }
                 else:
-                    return{
+                    return {
                     'msg': 'erros in code 1'
                             }
             else:

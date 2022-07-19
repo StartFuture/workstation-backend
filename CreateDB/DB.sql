@@ -118,3 +118,22 @@ CREATE TABLE `locacao` (
   CONSTRAINT `locacao_ibfk_1` FOREIGN KEY (`id_user`) REFERENCES `usuarios` (`id_user`),
   CONSTRAINT `locacao_ibfk_2` FOREIGN KEY (`id_box`) REFERENCES `box` (`id_box`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- workstation.two_auth definition
+CREATE TABLE `two_auth` (
+  `id_user` int NOT NULL,
+  `cod_two_factor` varchar(250) NOT NULL,
+  `date_register` timestamp default CURRENT_TIMESTAMP(),
+  PRIMARY KEY (`id_user`),
+  UNIQUE KEY `two_auth_UN` (`cod_two_factor`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+DROP EVENT IF EXISTS `triger_delete_two_factor_code`;
+CREATE EVENT `triger_delete_two_factor_code`  ON SCHEDULE EVERY 1 MINUTE 
+STARTS '2022-07-01 00:00:00' 
+DO 
+DELETE FROM `workstation`.`two_auth` where TIME_TO_SEC((TIMEDIFF(now(), `date_register`))) > 120;
+
+ALTER EVENT `triger_delete_two_factor_code` ON  COMPLETION PRESERVE ENABLE;
