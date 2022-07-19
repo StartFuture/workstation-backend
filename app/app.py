@@ -4,7 +4,7 @@ import logging
 from models import box, users, schedule, payments, adress
 from flask import Flask, redirect, url_for, render_template
 from flask_restful import  Resource, Api
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity, get_jwt
 
 import parameters
 
@@ -22,10 +22,10 @@ class HealthCheck(Resource):
     
 class Protected(Resource):
     @jwt_required()
-    
     def get(self):
         user_id = get_jwt_identity()
-        return {'status': 'ok', 'user': user_id}
+        two_auth = get_jwt()['two_auth']
+        return {'status': 'ok', 'user': user_id, 'two_auth': two_auth}
     
 # Test endpoints
 api.add_resource(HealthCheck, '/health')
