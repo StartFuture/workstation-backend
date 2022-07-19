@@ -1,11 +1,10 @@
 import re
 from flask_restful import Resource, reqparse
-from flask import request, session
 import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
 from . import dao as Bank
-from flask_jwt_extended import jwt_required, create_access_token
-import logging
+
+from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, get_jwt
 
 
 
@@ -97,7 +96,9 @@ class UserLogin(Resource):
                     id_user = Bank.DataBaseUser.get_user_id_by_email(email=user_login)
             
                     if id_user:
-                        access_token = create_access_token(identity=id_user)
+
+                        access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
+
                 
                         return {
                             'access_token': access_token
@@ -126,10 +127,16 @@ class UserLogin(Resource):
                 if password and name and email:
                     
                     if check_password_hash(password, dados['password_user']):
-                        session['email_user'] = email
-                        return {
-                            'msg': 'sucessfull',
-                        }, 200
+
+                        id_user = Bank.DataBaseUser.get_user_id_by_email(email=email)
+            
+                        if id_user:
+                            access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
+                    
+                            return {
+                                'access_token': access_token
+                            }, 200
+
                         
                     else:
                         
@@ -146,10 +153,14 @@ class UserLogin(Resource):
                 
                 if password and name and email:
                     if check_password_hash(password, dados['password_user']):
-                        session['email_user'] = email
-                        return {
-                            'msg': 'sucessfull'
-                        }, 200
+                        id_user = Bank.DataBaseUser.get_user_id_by_email(email=email)
+            
+                        if id_user:
+                            access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
+                    
+                            return {
+                                'access_token': access_token
+                            }, 200
                         
                     else:
                         
@@ -164,51 +175,102 @@ class UserLogin(Resource):
         
 class TwoFactorLogin(Resource):
     
-    def get(self):
-        global cod 
-        from random import randint
-        cod = randint(111111, 9999999)
+    @jwt_required()
+    def get(self): #? maybe is supposed to be post
+        two_auth = get_jwt()['two_auth']
         
-        function.send_email(session['email_user'], cod)
+        if two_auth: # verify if user has two factor authentication active
+            return {
+                'msg': 'Two factor already activated'
+            }, 400
         
-        return{
-            'verification_code': cod
-        }
+
+        else:
+            # try:
+            from random import randint
+            
+            cod = randint(111111, 9999999)
+            cod_hash = generate_password_hash(str(cod))
+            
+            user_id = get_jwt_identity()
+            
+            email = Bank.DataBaseUser.get_email_id_by_user_id(user_id)
+            
+            logging.warning(f'cod: {cod}')
+            # function.send_email(email, cod)
+            
+            if Bank.DataBaseUser.query_two_factor(user_id):
+                Bank.DataBaseUser.delete_two_factor(user_id)
+            
+            Bank.DataBaseUser.insert_two_factor(user_id, cod_hash)
+            
+            return {
+                'msg': 'Two factor code send to your email',
+            }, 200
+                
+            # except Exception as e:
+            #     logging.error(e)
+            #     return {
+            #         'msg': 'Error occurred while sending two factor email, try again'
+            #     }, 400
+    
+    @jwt_required()
+    def post(self):
+        two_auth = get_jwt()['two_auth']
         
-    def post(self):  
+        if two_auth: # verify if user has two factor authentication active
+            return {
+                'msg': 'Two factor already activated'
+            }, 400
+
+        
+        # try:
         
         argumentos = reqparse.RequestParser()
-        argumentos.add_argument("cod_user")
-        argumentos.add_argument("email")
+        
+        argumentos.add_argument('cod_user')
         
         dados = argumentos.parse_args()
         
-        cod_user = dados['cod_user']
-        email = dados['email']
         
-        if str(cod) == str(cod_user):
-            if email:
-                id_user = Bank.DataBaseUser.get_user_id_by_email(email=dados['email'])
-            
-                if id_user:
-                    access_token = create_access_token(identity=id_user)
-            
+        cod_user = function.convert_cod_int(dados['cod_user'])
+        
+        user_id = get_jwt_identity()
+        
+        cod = Bank.DataBaseUser.query_two_factor(user_id)
+        
+        if cod:
+        
+            if cod_user >= 111111 and cod_user <= 9999999:
+
+                if check_password_hash(cod, str(cod_user)):
+                    
+                    
+                    access_token = create_access_token(identity=user_id, additional_claims={'two_auth': True})
+
                     return {
                         'access_token': access_token
-                    }
-                else:
+                    }                    
+                    
+                else: # wrong code
                     return{
-                    'msg': 'erros in code 1'
-                            }
-            else:
-                return{
-                    'msg': 'erros in code 2'
-                            }
-        else:
-            
-            return{
-                'msg': 'erros in code 3'
-            }
+                        'msg': 'Invalid code'
+                    }, 400
+                    
+            else: # if code is not between 111111 and 9999999
+                return {
+                    'msg': 'Invalid code'
+                }, 400
+        
+        else: # if cod is not in database
+            return {
+                'msg': 'Code Expired'
+            }, 400
+                
+        # except Exception as e:
+        #     return {
+        #             'msg': 'Error occurred while processing two factor code, try again'
+        #         }, 400
             
 class Recover_Password_Email(Resource):
     

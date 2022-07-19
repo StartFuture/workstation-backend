@@ -17,7 +17,7 @@ def get_price_hour(type_plan):
     promotion_rate_percent = 1
     
     if type_plan in valid_types:
-  
+
         if type_plan == 'month_plan':
             promotion_rate_percent = 0.9
         elif type_plan == 'custom_plan':
