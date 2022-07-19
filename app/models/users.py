@@ -3,8 +3,8 @@ from flask_restful import Resource, reqparse
 import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
 from . import dao as Bank
+
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, get_jwt
-import logging
 
 
 
@@ -96,7 +96,9 @@ class UserLogin(Resource):
                     id_user = Bank.DataBaseUser.get_user_id_by_email(email=user_login)
             
                     if id_user:
+
                         access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
+
                 
                         return {
                             'access_token': access_token
@@ -125,6 +127,7 @@ class UserLogin(Resource):
                 if password and name and email:
                     
                     if check_password_hash(password, dados['password_user']):
+
                         id_user = Bank.DataBaseUser.get_user_id_by_email(email=email)
             
                         if id_user:
@@ -133,6 +136,7 @@ class UserLogin(Resource):
                             return {
                                 'access_token': access_token
                             }, 200
+
                         
                     else:
                         
@@ -180,6 +184,7 @@ class TwoFactorLogin(Resource):
                 'msg': 'Two factor already activated'
             }, 400
         
+
         else:
             # try:
             from random import randint
@@ -217,6 +222,7 @@ class TwoFactorLogin(Resource):
             return {
                 'msg': 'Two factor already activated'
             }, 400
+
         
         # try:
         

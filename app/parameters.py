@@ -17,8 +17,8 @@ PASSWORD = os.environ["PWD_DB"]
 NAME_DB = os.environ["NAME_DB"]
 HOST = os.environ["DB_HOST"]
 
-PASSWORD_EMAIL = os.environ["PASSWORD_EMAIL"]
 
+PASSWORD_EMAIL = os.environ["PASSWORD_EMAIL"]
 
 
 # NAME = 'root'
