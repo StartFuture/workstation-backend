@@ -5,7 +5,7 @@ import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
 from . import dao as Bank
 from flask_jwt_extended import jwt_required, create_access_token
-
+import logging
 
 
 
@@ -94,23 +94,27 @@ class UserLogin(Resource):
             if db_email and db_password:
                 
                 if check_password_hash(db_password, password_user):
-                    session['email_user'] = user_login
-                    return {
-                        'msg': 'sucessfull'
-                    }, 200
+                    id_user = Bank.DataBaseUser.get_user_id_by_email(email=user_login)
+            
+                    if id_user:
+                        access_token = create_access_token(identity=id_user)
+                
+                        return {
+                            'access_token': access_token
+                        }, 200
                     
                 else:
                     
-                   return {
+                    return {
                     'msg': 'incorrect email or password1'
                 }, 400 
-                   
+
             else:
                 
                 return {
                     'msg': 'incorrect email or password2'
                 }, 400
-                  
+
         else:
             
             is_cpf = function.is_cpf(dados['user_login'])
@@ -124,18 +128,18 @@ class UserLogin(Resource):
                     if check_password_hash(password, dados['password_user']):
                         session['email_user'] = email
                         return {
-                            'msg': 'sucessfull'
+                            'msg': 'sucessfull',
                         }, 200
                         
                     else:
                         
                         return {
                         'msg': 'incorrect email or password'
-                                 }, 400 
+                                }, 400 
                         
                 return {
                         'msg': 'incorrect email or password'
-                                 }, 400 
+                                }, 400 
             else:
                 
                 password, name, email = Bank.DataBaseUser.query_exist_cnpj(dados['user_login'])
@@ -151,11 +155,11 @@ class UserLogin(Resource):
                         
                         return {
                         'msg': 'incorrect email or password'
-                                 }, 400 
+                                }, 400 
                         
                 return {
                         'msg': 'incorrect email or password'
-                                 }, 400
+                                }, 400
         
         
 class TwoFactorLogin(Resource):
@@ -167,11 +171,9 @@ class TwoFactorLogin(Resource):
         
         function.send_email(session['email_user'], cod)
         
-        print(session['email_user'])
-        
         return{
             'verification_code': cod
-        }     
+        }
         
     def post(self):  
         
