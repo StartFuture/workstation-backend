@@ -4,6 +4,7 @@ import smtplib
 import email.message
 import os
 from dotenv import load_dotenv
+import logging
 
 
 import parameters
@@ -124,28 +125,28 @@ def date_conversor(start_date, final_date):
     return start_date, final_date
     
 
-def send_email(client_email, cod):
-    corpo_email = f"""
-    <h1>Ola,</h1>
-    <h1>Seu código de verificação é:</h1>
-    <h2>{cod}</h2>
-    """
-
+def send_email(client_email, cod): # should return if the email was sent
+    logging.critical('Enviando email para o cliente')
     msg = email.message.Message()
     msg['Subject'] = "Código de verificação"
-    msg['From'] = 'WorkStation.box.email@gmail.com'
+    msg['From'] = parameters.USER_EMAIL
     msg['To'] = client_email
-    password = parameters.PASSWORD_EMAIL
     msg.add_header('Content-Type', 'text/html')
-    msg.set_payload(corpo_email )
+    logging.warning(parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod))
+    logging.warning(parameters.USER_EMAIL)
+    logging.warning(parameters.PASSWORD_EMAIL)
+    msg.set_payload(parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod))
 
-    if password:
+    if parameters.PASSWORD_EMAIL:
         s = smtplib.SMTP('smtp.gmail.com: 587')
         s.starttls()
         # Login Credentials for sending the mail
-        s.login(msg['From'], password)
+        s.login(msg['From'], parameters.PASSWORD_EMAIL)
         s.sendmail(msg['From'], [msg['To']], msg.as_string().encode('utf-8'))
-        print('Email enviado')
+        # print('Email enviado')
+        logging.info('Email enviado')
+    else:
+        logging.warning('Email não enviado')
     
     
 def process_data_box():

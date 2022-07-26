@@ -1,4 +1,7 @@
 import re
+import logging
+from datetime import timedelta
+
 from flask_restful import Resource, reqparse
 import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
@@ -6,6 +9,7 @@ from . import dao as Bank
 
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, get_jwt
 
+import parameters
 
 
 class User(Resource):
@@ -197,12 +201,14 @@ class TwoFactorLogin(Resource):
             email = Bank.DataBaseUser.get_email_id_by_user_id(user_id)
             
             logging.warning(f'cod: {cod}')
+            # logging.warning()
             # function.send_email(email, cod)
             
-            if Bank.DataBaseUser.query_two_factor(user_id):
-                Bank.DataBaseUser.delete_two_factor(user_id)
             
-            Bank.DataBaseUser.insert_two_factor(user_id, cod_hash)
+            if Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR):
+                Bank.DataBaseUser.delete_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR)
+            
+            Bank.DataBaseUser.insert_two_factor(user_id, cod_hash, type_code=parameters.ID_CODE_TWO_FACTOR)
             
             return {
                 'msg': 'Two factor code send to your email',
@@ -237,7 +243,7 @@ class TwoFactorLogin(Resource):
         
         user_id = get_jwt_identity()
         
-        cod = Bank.DataBaseUser.query_two_factor(user_id)
+        cod = Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR)
         
         if cod:
         
@@ -285,51 +291,122 @@ class Recover_Password_Email(Resource):
         email_user = dados['email']
         
         if Bank.DataBaseUser.query_exist_email(email_user):
-            global cod2 
+            
             from random import randint
-            cod2 = randint(111111, 9999999)
-            function.send_email(email_user, cod)
+            
+            cod = randint(111111, 9999999)
+            cod_hash = generate_password_hash(str(cod))
+            
+            # user_id = get_jwt_identity()
+            
+            user_id = Bank.DataBaseUser.get_user_id_by_email(email_user)
+            
+            logging.warning(f'cod: {cod}')
+            
+            if Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_RESET_PASSWORD):
+                Bank.DataBaseUser.delete_two_factor(user_id, type_code=parameters.ID_CODE_RESET_PASSWORD)
+            
+            Bank.DataBaseUser.insert_two_factor(user_id, cod_hash, type_code=parameters.ID_CODE_RESET_PASSWORD)
+            
+            # function.send_email(email_user, cod)
+            
             return {
-                "msg": "send code",
+                "msg": "Reset Password code send to your email",
                 "email": email_user
             }
             
     
 class Recover_Password_Code(Resource):
+    #? front end is supposed to receive and process the jwt token
+    ##! change method to receive jwt and password to change
     
     def post(self):
         argumentos = reqparse.RequestParser()
-
-        argumentos.add_argument("cod_user_recover")
-        argumentos.add_argument("email_user")
+        
+        # Look only in the querystring
+        parser = reqparse.RequestParser()
+        
+        parser.add_argument('token', type=str, location='args')
+        
+        argumentos.add_argument('cod_user_recover')
 
         dados = argumentos.parse_args()
+        
+        cod_user = function.convert_cod_int(dados['cod_user_recover'])
+        
+        # user_id = get_jwt_identity()
+        
+        cod = Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR)
+        
+        if cod:
+        
+            if cod_user >= 111111 and cod_user <= 9999999:
 
-        cod_user_recover = dados['cod_user_recover']
-        if cod_user_recover == cod2:
-            email_user = dados['email_user']
+                if check_password_hash(cod, str(cod_user)): 
+                    
+                    access_token = create_access_token(identity=user_id, additional_claims={'recover_passwd': True}, expires_delta=timedelta(minutes=5))
 
-
+                    return {
+                        'access_token': access_token
+                    }                    
+                    
+                else: # wrong code
+                    return{
+                        'msg': 'Invalid code'
+                    }, 400
+                    
+            else: # if code is not between 111111 and 9999999
+                return {
+                    'msg': 'Invalid code'
+                }, 400
+        
+        else: # if cod is not in database
             return {
-                "msg": "sucessfull",
-                "email": email_user
-            }
+                'msg': 'Code Expired'
+            }, 400
+                
+        # except Exception as e:
+        #     return {
+        #             'msg': 'Error occurred while processing two factor code, try again'
+        #         }, 400
     
 class NewPassword(Resource):
-    
+    @jwt_required()
     def post(self):
-        
-        argumentos = reqparse.RequestParser()
-        
-        argumentos.add_argument("nova_senha")
-        argumentos.add_argument("email_user")
-        
-        dados = argumentos.parse_args()
-        
-        new_password = dados['nova_senha']
-        email_user = dados['email_user']
-        
-        id_user = Bank.DataBaseUser.get_user_id_by_email(email_user)
-        
-        
-        Bank.DataBaseUser.new_password(id_user, generate_password_hash(new_password))
+        jwt_infos = get_jwt()
+        if 'recover_passwd' in jwt_infos:
+            
+            if jwt_infos['recover_passwd']:
+                
+                argumentos = reqparse.RequestParser()
+                
+                argumentos.add_argument("nova_senha")
+                
+                dados = argumentos.parse_args()
+                
+                new_password = dados['nova_senha']
+                
+                if new_password:
+                
+                    id_user = get_jwt_identity()
+                    
+                    Bank.DataBaseUser.new_password(id_user, generate_password_hash(new_password))
+                    
+                    return {
+                        'msg': 'Password changed'
+                    }, 200
+                
+                else:
+                    return {
+                        'msg': 'Invalid new password'
+                    }, 400
+            
+            else:
+                return {
+                    'msg': 'Invalid code',
+                }, 400
+                
+        else:
+            return {
+                'msg': 'Invalid code',
+            }, 400

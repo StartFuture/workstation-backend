@@ -120,7 +120,6 @@ class DataBaseUser:
             cursor.execute(query_identity)
                 
 
-
     def save_user(name, last_name, email, cellphone, birthdate, password, identity, sex):
         # Save Basic infos
         try:
@@ -134,6 +133,7 @@ class DataBaseUser:
             # Save identification
             DataBaseUser.save_user_identification(id_user, identity)
             return True
+
 
     def search_pj(cnpj, email):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
@@ -243,26 +243,28 @@ class DataBaseUser:
                 """
                 cursor.execute(query)
                 
-    def insert_two_factor(id_user, hash_code):
+    def insert_two_factor(id_user, hash_code, type_code : int):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 query = f"""
-                insert into two_auth(id_user, cod_two_factor)
-                values ({id_user}, '{hash_code}');
+                insert into two_auth(id_user, cod_two_factor, type_code)
+                values ({id_user}, '{hash_code}', {type_code});
                 """
                 cursor.execute(query)
     
-    def delete_two_factor(id_user):
+    def delete_two_factor(id_user, type_code : int):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 query = f"""
                 delete from two_auth
                 where
-                id_user = '{id_user}';
+                id_user = {id_user}
+                and
+                type_code = {type_code};
                 """
                 cursor.execute(query)
     
-    def query_two_factor(id_user):
+    def query_two_factor(id_user, type_code : int):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 query = f"""
@@ -271,6 +273,9 @@ class DataBaseUser:
                 id_user = {id_user}
                 and
                 TIME_TO_SEC((TIMEDIFF(now(), `date_register`))) <= 120
+                and type_code = {type_code}
+                order by date_register desc
+                limit 1
                 ;
                 """
                 cursor.execute(query)
