@@ -47,12 +47,11 @@ class Protected(Resource):
 api.add_resource(HealthCheck, '/health')
 api.add_resource(Protected, '/protected')
 
-api.add_resource(users.UserLogin, "/autenticar") #mvp #Ok
-api.add_resource(users.CreateUser, "/criar") #mvp #Ok
-api.add_resource(users.TwoFactorLogin, "/codigo") #mvp #Ok
-api.add_resource(users.Recover_Password_Email, "/recuperar_senha_email") #mvp #Ok
-api.add_resource(users.Recover_Password_Code, "/recuperar_senha_codigo") #mvp #Ok
-api.add_resource(users.NewPassword, "/nova_senha") #mvp #Ok
+api.add_resource(users.UserLogin, "/login") #mvp #Ok
+api.add_resource(users.CreateUser, "/signup ") #mvp #Ok
+api.add_resource(users.TwoFactorLogin, "/two_factor") #mvp #Ok
+api.add_resource(users.Recover_Password_Request_Email, "/password_reset") #mvp #Ok
+api.add_resource(users.Recover_Password, "/new_password") #mvp #Ok
 
 api.add_resource(box.ShowListBox, "/") #mvp #Ok
 api.add_resource(box.CreateBox, "/box/create_box")#mvp #Ok

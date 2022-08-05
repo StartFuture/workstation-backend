@@ -125,17 +125,17 @@ def date_conversor(start_date, final_date):
     return start_date, final_date
     
 
-def send_email(client_email, cod): # should return if the email was sent
+def send_email(client_email, layout_email): # should return if the email was sent
     logging.critical('Enviando email para o cliente')
     msg = email.message.Message()
     msg['Subject'] = "Código de verificação"
     msg['From'] = parameters.USER_EMAIL
     msg['To'] = client_email
     msg.add_header('Content-Type', 'text/html')
-    logging.warning(parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod))
+    logging.warning(layout_email)
     logging.warning(parameters.USER_EMAIL)
     logging.warning(parameters.PASSWORD_EMAIL)
-    msg.set_payload(parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod))
+    msg.set_payload(layout_email)
 
     if parameters.PASSWORD_EMAIL:
         s = smtplib.SMTP('smtp.gmail.com: 587')
@@ -145,7 +145,9 @@ def send_email(client_email, cod): # should return if the email was sent
         s.sendmail(msg['From'], [msg['To']], msg.as_string().encode('utf-8'))
         # print('Email enviado')
         logging.info('Email enviado')
+        return True
     else:
+        return False
         logging.warning('Email não enviado')
     
     

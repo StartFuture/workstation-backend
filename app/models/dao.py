@@ -55,7 +55,7 @@ class DataBaseUser:
                 query = f"""
                             select id_user from usuarios where email = '{email}';
                             """
-                
+                            
                 cursor.execute(query)
                 
                 value = cursor.fetchone()
@@ -91,9 +91,9 @@ class DataBaseUser:
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 query_user = f"""
-                insert into usuarios
+                insert into usuarios(nome,sobrenome,sexo,data_nascimento,telefone,email,senha)
                 values 
-                (default,'{name}', '{last_name}', '{sex}','{birthdate}', '{cellphone}','{email}', '{password}');
+                ('{name}', '{last_name}', '{sex}','{birthdate}', '{cellphone}','{email}', '{password}');
                 """
                 try:
                     cursor.execute(query_user)
@@ -398,7 +398,7 @@ class DataBaseBox:
                     for value in values:
                         return value['id_endereco']
     
-      
+
     def add_address(cep, street, number, complement, district, city, state):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:

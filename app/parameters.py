@@ -19,6 +19,7 @@ PASSWORD = os.environ["PWD_DB"]
 NAME_DB = os.environ["NAME_DB"]
 HOST = os.environ["DB_HOST"]
 
+URL_FRONTEND = os.environ["URL_FRONTEND"]
 
 ID_CODE_TWO_FACTOR = 1
 ID_CODE_RESET_PASSWORD = 2
@@ -30,6 +31,12 @@ CONTENT_EMAIL_CODE_TEMPLATE = """
     <h1>Ola,</h1>
     <h1>Seu código de verificação é:</h1>
     <h2>{cod}</h2>
+    """
+    
+CONTENT_EMAIL_RECOVER_PASSWORD = """
+    <h1>Ola,</h1>
+    <h1>Copie o link abaixo e cole em outra aba para resetar a senha</h1>
+    <h2>{token}</h2>
     """
 
 
