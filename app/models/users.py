@@ -1,11 +1,15 @@
 import re
+import logging
+from datetime import timedelta
+
 from flask_restful import Resource, reqparse
 import defs_workstation as function
 from werkzeug.security import safe_str_cmp, generate_password_hash, check_password_hash
 from . import dao as Bank
 
-from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, get_jwt
+from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, get_jwt, verify_jwt_in_request
 
+import parameters
 
 
 class User(Resource):
@@ -98,8 +102,7 @@ class UserLogin(Resource):
                     if id_user:
 
                         access_token = create_access_token(identity=id_user, additional_claims={'two_auth': False})
-
-                
+                        
                         return {
                             'access_token': access_token
                         }, 200
@@ -197,12 +200,15 @@ class TwoFactorLogin(Resource):
             email = Bank.DataBaseUser.get_email_id_by_user_id(user_id)
             
             logging.warning(f'cod: {cod}')
-            # function.send_email(email, cod)
+            # logging.warning()
             
-            if Bank.DataBaseUser.query_two_factor(user_id):
-                Bank.DataBaseUser.delete_two_factor(user_id)
+            # function.send_email(email, layout_email = parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod)))
             
-            Bank.DataBaseUser.insert_two_factor(user_id, cod_hash)
+            
+            if Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR):
+                Bank.DataBaseUser.delete_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR)
+            
+            Bank.DataBaseUser.insert_two_factor(user_id, cod_hash, type_code=parameters.ID_CODE_TWO_FACTOR)
             
             return {
                 'msg': 'Two factor code send to your email',
@@ -237,7 +243,7 @@ class TwoFactorLogin(Resource):
         
         user_id = get_jwt_identity()
         
-        cod = Bank.DataBaseUser.query_two_factor(user_id)
+        cod = Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR)
         
         if cod:
         
@@ -272,9 +278,14 @@ class TwoFactorLogin(Resource):
         #             'msg': 'Error occurred while processing two factor code, try again'
         #         }, 400
             
-class Recover_Password_Email(Resource):
+class Recover_Password_Request_Email(Resource):
     
     def post(self):
+        
+        if verify_jwt_in_request(optional=True):
+            return {
+                'msg': 'You already have a token'
+            }
         
         argumentos = reqparse.RequestParser()
         
@@ -285,51 +296,67 @@ class Recover_Password_Email(Resource):
         email_user = dados['email']
         
         if Bank.DataBaseUser.query_exist_email(email_user):
-            global cod2 
-            from random import randint
-            cod2 = randint(111111, 9999999)
-            function.send_email(email_user, cod)
+            
+            
+            user_id = Bank.DataBaseUser.get_user_id_by_email(email_user)
+            
+            if Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_RESET_PASSWORD):
+                Bank.DataBaseUser.delete_two_factor(user_id, type_code=parameters.ID_CODE_RESET_PASSWORD)
+            
+            token = create_access_token(identity=user_id, additional_claims={'recover_passwd': True})
+            
+            url_reset_password = f'{parameters.URL_FRONTEND}/reset_password?token={token}'
+            
+            print(token)
+            
+            # function.send_email(email_user, layout_email = parameters.CONTENT_EMAIL_RECOVER_PASSWORD.format(token=token))
+            
             return {
-                "msg": "send code",
-                "email": email_user
+                "msg": "Email to reset password sent"
             }
             
     
-class Recover_Password_Code(Resource):
+class Recover_Password(Resource):
+    #? front end is supposed to receive and process the jwt token
     
+    @jwt_required()
     def post(self):
-        argumentos = reqparse.RequestParser()
-
-        argumentos.add_argument("cod_user_recover")
-        argumentos.add_argument("email_user")
-
-        dados = argumentos.parse_args()
-
-        cod_user_recover = dados['cod_user_recover']
-        if cod_user_recover == cod2:
-            email_user = dados['email_user']
-
-
+        
+        jwt_data = get_jwt()
+        
+        if 'recover_passwd' not in jwt_data:
             return {
-                "msg": "sucessfull",
-                "email": email_user
+                'msg': 'Your Token is not for this operation'
             }
-    
-class NewPassword(Resource):
-    
-    def post(self):
+
+        elif not jwt_data['recover_passwd']:
+            return {
+                'msg': 'Your Token is not for this operation'
+            }   
         
         argumentos = reqparse.RequestParser()
         
-        argumentos.add_argument("nova_senha")
-        argumentos.add_argument("email_user")
-        
+        argumentos.add_argument('password', type=str, required=True)
+
         dados = argumentos.parse_args()
         
-        new_password = dados['nova_senha']
-        email_user = dados['email_user']
+        password = dados['password']
         
-        id_user = Bank.DataBaseUser.get_user_id_by_email(email_user)
+        if len(password) >= 6:
+            
+            password_hash = generate_password_hash(password)
+            user_id = get_jwt_identity()
+            
+            #? Before reset password, revoke the token
+            
+            Bank.DataBaseUser.new_password(user_id, password_hash)
+            
         
+            return {
+                'msg': 'Password changed'
+            }, 200
         
-        Bank.DataBaseUser.new_password(id_user, generate_password_hash(new_password))
+        else: # if cod is not in database
+            return {
+                'msg': 'Password must be at least 6 characters'
+            }, 400

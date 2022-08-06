@@ -120,20 +120,32 @@ CREATE TABLE `locacao` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE `tb_type_code` (
+  `type_code` int(2) NOT NULL,
+  `descript` varchar(20) NOT NULL,
+  PRIMARY KEY (`type_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 -- workstation.two_auth definition
+
 CREATE TABLE `two_auth` (
+  `id_two_auth` int auto_increment not null,
   `id_user` int NOT NULL,
   `cod_two_factor` varchar(250) NOT NULL,
-  `date_register` timestamp default CURRENT_TIMESTAMP(),
-  PRIMARY KEY (`id_user`),
-  UNIQUE KEY `two_auth_UN` (`cod_two_factor`)
+  `date_register` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `type_code` int(2) NOT NULL,
+  PRIMARY KEY (`id_two_auth`),
+  CONSTRAINT `two_auth_type_code_fk` FOREIGN KEY (`type_code`) REFERENCES `tb_type_code` (`type_code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
-DROP EVENT IF EXISTS `triger_delete_two_factor_code`;
+-- DROP EVENT IF EXISTS `triger_delete_two_factor_code`;
+
 CREATE EVENT `triger_delete_two_factor_code`  ON SCHEDULE EVERY 1 MINUTE 
 STARTS '2022-07-01 00:00:00' 
 DO 
 DELETE FROM `workstation`.`two_auth` where TIME_TO_SEC((TIMEDIFF(now(), `date_register`))) > 120;
 
 ALTER EVENT `triger_delete_two_factor_code` ON  COMPLETION PRESERVE ENABLE;
+
+insert into tb_type_code(type_code, descript) values (1, 'login_two_auth'), (2, 'reset_password');
