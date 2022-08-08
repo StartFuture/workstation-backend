@@ -68,6 +68,16 @@ class DataBaseUser:
                     
                 return value
     
+    def get_user_info(user_id):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                query = f"""
+                select id_user as id, nome, sobrenome, sexo, data_nascimento, telefone, email from usuarios
+                where id_user = '{user_id}';
+                """
+                cursor.execute(query)
+                return cursor.fetchone()
+    
     def get_email_id_by_user_id(user_id):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:

@@ -76,7 +76,7 @@ class CreateUser(Resource):
         
 class UserLogin(Resource):
     
-    def post(self):
+    def get(self):
                 
         argumentos = reqparse.RequestParser()
         
@@ -87,7 +87,7 @@ class UserLogin(Resource):
         
         user_login = dados['user_login']
         password_user = dados['password_user']
-        
+        print(dados)
         is_email = function.check(user_login)
         
         if is_email:
@@ -174,6 +174,30 @@ class UserLogin(Resource):
                 return {
                         'msg': 'incorrect email or password'
                                 }, 400
+
+
+class GetUserInfo(Resource):
+    @jwt_required
+    def get(self):
+        jwt_info = get_jwt()
+        
+        if 'two_auth' in jwt_info:
+            if jwt_info['two_auth']:
+            
+                user_id = get_jwt_identity()
+                user_info = Bank.DataBaseUser.get_user_info(user_id)
+                return user_info, 200
+            
+            else:
+                return {
+                    'msg': 'Two auth is required'
+                }, 400
+                
+        return {
+            'msg': 'Two auth is required'
+        }, 400
+        
+        
         
         
 class TwoFactorLogin(Resource):

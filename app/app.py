@@ -47,21 +47,22 @@ class Protected(Resource):
 api.add_resource(HealthCheck, '/health')
 api.add_resource(Protected, '/protected')
 
-api.add_resource(users.UserLogin, "/login") #mvp #Ok
-api.add_resource(users.CreateUser, "/signup ") #mvp #Ok
-api.add_resource(users.TwoFactorLogin, "/two_factor") #mvp #Ok
-api.add_resource(users.Recover_Password_Request_Email, "/password_reset") #mvp #Ok
-api.add_resource(users.Recover_Password, "/new_password") #mvp #Ok
+api.add_resource(users.UserLogin, "/login")
+api.add_resource(users.CreateUser, "/signup ")
+api.add_resource(users.TwoFactorLogin, "/two_factor")
+api.add_resource(users.GetUserInfo, "/user_info")
+api.add_resource(users.Recover_Password_Request_Email, "/password_reset")
+api.add_resource(users.Recover_Password, "/new_password")
 
-api.add_resource(box.ShowListBox, "/") #mvp #Ok
-api.add_resource(box.CreateBox, "/box/create_box")#mvp #Ok
+api.add_resource(box.ShowListBox, "/")
+api.add_resource(box.CreateBox, "/box/create_box")
 
 api.add_resource(schedule.ShowSchedule, "/meu_perfil/agendamentos") #mvp
 api.add_resource(schedule.DeleteSchedule, "/meu_perfil/deletar_agendamento") #mvp
 api.add_resource(schedule.UpdateSchedule, "/meu_perfil/atualizar_agendamento") #mvp
 api.add_resource(schedule.GenerateSchedule, "/meu_perfil/criar_agendamento") #mvp
 
-api.add_resource(payments.Payments, "/pagamento") #mvp #ok
+api.add_resource(payments.Payments, "/pagamento")
 
 api.add_resource(adress.Create_adress, "/criar_endereco")
 
@@ -69,5 +70,3 @@ if __name__ == "__main__":
     if parameters.FLASK_ENV == "development":
         logging.basicConfig(level=logging.DEBUG)
     app.run(debug=parameters.FLASK_DEBUG, port=parameters.FLASK_RUN_PORT)
-
-# 
