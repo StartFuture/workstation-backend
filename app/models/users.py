@@ -87,7 +87,7 @@ class UserLogin(Resource):
         
         user_login = dados['user_login']
         password_user = dados['password_user']
-        print(dados)
+        
         is_email = function.check(user_login)
         
         if is_email:
@@ -177,7 +177,7 @@ class UserLogin(Resource):
 
 
 class GetUserInfo(Resource):
-    @jwt_required
+    @jwt_required()
     def get(self):
         jwt_info = get_jwt()
         
@@ -186,6 +186,9 @@ class GetUserInfo(Resource):
             
                 user_id = get_jwt_identity()
                 user_info = Bank.DataBaseUser.get_user_info(user_id)
+                
+                user_info['data_nascimento'] = user_info['data_nascimento'].strftime('%d/%m/%Y')
+                
                 return user_info, 200
             
             else:
@@ -203,7 +206,7 @@ class GetUserInfo(Resource):
 class TwoFactorLogin(Resource):
     
     @jwt_required()
-    def get(self): #? maybe is supposed to be post
+    def post(self): #? maybe is supposed to be post
         two_auth = get_jwt()['two_auth']
         
         if two_auth: # verify if user has two factor authentication active
@@ -218,7 +221,7 @@ class TwoFactorLogin(Resource):
             
             cod = randint(111111, 9999999)
             cod_hash = generate_password_hash(str(cod))
-            
+
             user_id = get_jwt_identity()
             
             email = Bank.DataBaseUser.get_email_id_by_user_id(user_id)
@@ -245,7 +248,7 @@ class TwoFactorLogin(Resource):
             #     }, 400
     
     @jwt_required()
-    def post(self):
+    def get(self):
         two_auth = get_jwt()['two_auth']
         
         if two_auth: # verify if user has two factor authentication active
@@ -262,7 +265,6 @@ class TwoFactorLogin(Resource):
         
         dados = argumentos.parse_args()
         
-        
         cod_user = function.convert_cod_int(dados['cod_user'])
         
         user_id = get_jwt_identity()
@@ -274,7 +276,6 @@ class TwoFactorLogin(Resource):
             if cod_user >= 111111 and cod_user <= 9999999:
 
                 if check_password_hash(cod, str(cod_user)):
-                    
                     
                     access_token = create_access_token(identity=user_id, additional_claims={'two_auth': True})
 
@@ -295,7 +296,7 @@ class TwoFactorLogin(Resource):
         else: # if cod is not in database
             return {
                 'msg': 'Code Expired'
-            }, 400
+            }, 410
                 
         # except Exception as e:
         #     return {
@@ -323,9 +324,6 @@ class Recover_Password_Request_Email(Resource):
             
             
             user_id = Bank.DataBaseUser.get_user_id_by_email(email_user)
-            
-            if Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_RESET_PASSWORD):
-                Bank.DataBaseUser.delete_two_factor(user_id, type_code=parameters.ID_CODE_RESET_PASSWORD)
             
             token = create_access_token(identity=user_id, additional_claims={'recover_passwd': True})
             

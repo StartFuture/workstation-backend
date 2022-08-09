@@ -16,7 +16,7 @@ def convert_cod_int(cod : str):
         cod = int(cod)
         return cod
     else:
-        return None
+        return 0
         
 
 def check(user):

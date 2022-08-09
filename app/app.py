@@ -24,28 +24,29 @@ class HealthCheck(Resource):
         
         return {'status': 'ok'}
     
-class Protected(Resource):
+class VerifyJwtInfos(Resource):
+    
     @jwt_required()
-
     def get(self):
+        
         user_id = get_jwt_identity()
         jwt_infos = get_jwt()
+        
         if 'two_auth' in jwt_infos:
             two_auth = jwt_infos['two_auth']
         else:
-            two_auth = None
+            two_auth = False
         
         if 'recover_passwd' in jwt_infos:
             recover_passwd = jwt_infos['recover_passwd']
         else:
-            recover_passwd = None
+            recover_passwd = False
             
-        return {'status': 'ok', 'user': user_id, 'two_auth': two_auth, 'recover_passwd': recover_passwd}
+        return {'status': 'ok', 'user': user_id, 'two_auth': two_auth, 'recover_passwd': recover_passwd}, 200
 
-    
-# Test endpoints
+
 api.add_resource(HealthCheck, '/health')
-api.add_resource(Protected, '/protected')
+api.add_resource(VerifyJwtInfos, '/verify_jwt_infos')
 
 api.add_resource(users.UserLogin, "/login")
 api.add_resource(users.CreateUser, "/signup ")
