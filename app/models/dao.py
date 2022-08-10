@@ -72,8 +72,10 @@ class DataBaseUser:
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 query = f"""
-                select id_user as id, nome, sobrenome, sexo, data_nascimento, telefone, email from usuarios
-                where id_user = '{user_id}';
+                select usuarios.id_user as id, info_user_cpf.cpf, nome, sobrenome, sexo, data_nascimento, telefone, email from usuarios
+                left join info_user_cpf
+                on info_user_cpf.id_user = usuarios.id_user
+                where usuarios.id_user = {user_id};
                 """
                 cursor.execute(query)
                 return cursor.fetchone()
