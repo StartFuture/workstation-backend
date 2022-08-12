@@ -66,7 +66,6 @@ class CreateUser(Resource):
                 sex=user.sex,
             )
             
-            
             if create:
                 return {'msg': 'User create'}, 200
             else:
