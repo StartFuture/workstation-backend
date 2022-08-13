@@ -49,7 +49,7 @@ api.add_resource(HealthCheck, '/health')
 api.add_resource(VerifyJwtInfos, '/verify_jwt_infos')
 
 api.add_resource(users.UserLogin, "/login")
-api.add_resource(users.CreateUser, "/signup ")
+api.add_resource(users.CreateUser, "/signup")
 api.add_resource(users.TwoFactorLogin, "/two_factor")
 api.add_resource(users.GetUserInfo, "/user_info")
 api.add_resource(users.Recover_Password_Request_Email, "/password_reset")

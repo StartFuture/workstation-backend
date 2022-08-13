@@ -66,9 +66,12 @@ class CreateUser(Resource):
                 sex=user.sex,
             )
             
-            
             if create:
-                return {'msg': 'User create'}, 200
+
+                function.send_email(user.email, layout_email = parameters.CONTENT_EMAIL_REGISTER_COMPLETE.format(name=user.name))
+
+                return {'msg': 'User create'}, 200            
+
             else:
                 return {'msg': 'Db Problem'}, 400
         
@@ -229,7 +232,7 @@ class TwoFactorLogin(Resource):
             logging.warning(f'cod: {cod}')
             # logging.warning()
             
-            # function.send_email(email, layout_email = parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod)))
+            function.send_email(email, layout_email = parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod))
             
             
             if Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR):
@@ -314,7 +317,7 @@ class Recover_Password_Request_Email(Resource):
         
         argumentos = reqparse.RequestParser()
         
-        argumentos.add_argument("email")
+        argumentos.add_argument("email", required=True, help="Email is required")
         
         dados = argumentos.parse_args()
         
@@ -322,20 +325,25 @@ class Recover_Password_Request_Email(Resource):
         
         if Bank.DataBaseUser.query_exist_email(email_user):
             
-            
             user_id = Bank.DataBaseUser.get_user_id_by_email(email_user)
             
             token = create_access_token(identity=user_id, additional_claims={'recover_passwd': True})
             
-            url_reset_password = f'{parameters.URL_FRONTEND}/reset_password?token={token}'
+            url_reset_password = f'{parameters.URL_FRONTEND}/user/reset_password?token={token}'
             
-            print(token)
+            print(url_reset_password) #! using while email func is not working 
             
-            # function.send_email(email_user, layout_email = parameters.CONTENT_EMAIL_RECOVER_PASSWORD.format(token=token))
+            function.send_email(email_user, layout_email = parameters.CONTENT_EMAIL_RECOVER_PASSWORD.format(token=token))
             
             return {
                 "msg": "Email to reset password sent"
-            }
+            }, 200
+        
+        else:
+            return {
+                "msg": "Email not registered"
+            }, 404
+        
             
     
 class Recover_Password(Resource):
@@ -363,14 +371,14 @@ class Recover_Password(Resource):
         dados = argumentos.parse_args()
         
         password = dados['password']
-        
+
         if len(password) >= 6:
             
             password_hash = generate_password_hash(password)
             user_id = get_jwt_identity()
-            
+
             #? Before reset password, revoke the token
-            
+            print(user_id, password)
             Bank.DataBaseUser.new_password(user_id, password_hash)
             
         
@@ -378,7 +386,7 @@ class Recover_Password(Resource):
                 'msg': 'Password changed'
             }, 200
         
-        else: # if cod is not in database
+        else:
             return {
                 'msg': 'Password must be at least 6 characters'
             }, 400

@@ -31,7 +31,7 @@ class DataBase:
         except Exception as erro:
             logging.critical(erro)
             
-class DataBaseUser:                
+class DataBaseUser:
             
     def verify_user_exist(cpf, email, telefone):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:

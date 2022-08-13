@@ -17,7 +17,7 @@ def convert_cod_int(cod : str):
         return cod
     else:
         return 0
-        
+
 
 def check(user):
     return bool(re.match(r"[a-zA-Z0-9\.]+@[a-z]+.[a-z]+.?b?r?", user))
@@ -126,15 +126,11 @@ def date_conversor(start_date, final_date):
     
 
 def send_email(client_email, layout_email): # should return if the email was sent
-    logging.critical('Enviando email para o cliente')
     msg = email.message.Message()
     msg['Subject'] = "Código de verificação"
     msg['From'] = parameters.USER_EMAIL
     msg['To'] = client_email
     msg.add_header('Content-Type', 'text/html')
-    logging.warning(layout_email)
-    logging.warning(parameters.USER_EMAIL)
-    logging.warning(parameters.PASSWORD_EMAIL)
     msg.set_payload(layout_email)
 
     if parameters.PASSWORD_EMAIL:
@@ -193,29 +189,3 @@ def process_data_box():
                 box['endereco'] = address
 
     return list_box
-
-def send_password_box(client_email, senha_box):
-
-    load_dotenv()
-    senha = os.environ.get("SENHA")
-    corpo_email = f"""
-    <h1>Ola,</h1>
-    <h1>Sua senha de acesso para a box é:</h1>
-    <h2>{senha_box}</h2>
-    """
-
-    msg = email.message.Message()
-    msg['Subject'] = "Senha de acesso"
-    msg['From'] = 'WorkStation.box.email@gmail.com'
-    msg['To'] = client_email
-    password = senha
-    msg.add_header('Content-Type', 'text/html')
-    msg.set_payload(corpo_email )
-
-    if password:
-        s = smtplib.SMTP('smtp.gmail.com: 587')
-        s.starttls()
-        # Login Credentials for sending the mail
-        s.login(msg['From'], password)
-        s.sendmail(msg['From'], [msg['To']], msg.as_string().encode('utf-8'))
-        print('Email enviado')
