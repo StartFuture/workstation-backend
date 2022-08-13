@@ -36,7 +36,8 @@ CONTENT_EMAIL_CODE_TEMPLATE = """
 CONTENT_EMAIL_RECOVER_PASSWORD = """
     <h1>Ola,</h1>
     <h1>Copie o link abaixo e cole em outra aba para resetar a senha</h1>
-    <h2>{token}</h2>
+    <h2> <a href="{token}"> Clique aqui </a> <h2>
+    <h2> caso o link não funcione copie o seguinte url e cole no seu browser: <br>{token}</h2>    
     """
 
 CONTENT_EMAIL_REGISTER_COMPLETE = """
