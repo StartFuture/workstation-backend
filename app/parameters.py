@@ -39,6 +39,17 @@ CONTENT_EMAIL_RECOVER_PASSWORD = """
     <h2>{token}</h2>
     """
 
+CONTENT_EMAIL_REGISTER_COMPLETE = """
+    <h1>Ola, {name}</h1>
+    <h1>Sua conta na Workstation Foi criada com sucesso!!</h1>
+    """
+
+CONTENT_EMAIL_CODE_BOX = """
+    <h1>Ola,</h1>
+    <h1>Sua Código de acesso para a box é:</h1>
+    <h2>{code_box}</h2>
+    """
+
 
 # NAME = 'root'
 # PASSWORD = 'admin'

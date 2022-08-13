@@ -67,7 +67,11 @@ class CreateUser(Resource):
             )
             
             if create:
-                return {'msg': 'User create'}, 200
+
+                function.send_email(user.email, layout_email = parameters.CONTENT_EMAIL_REGISTER_COMPLETE.format(name=user.name))
+
+                return {'msg': 'User create'}, 200            
+
             else:
                 return {'msg': 'Db Problem'}, 400
         
@@ -228,7 +232,7 @@ class TwoFactorLogin(Resource):
             logging.warning(f'cod: {cod}')
             # logging.warning()
             
-            # function.send_email(email, layout_email = parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod)))
+            function.send_email(email, layout_email = parameters.CONTENT_EMAIL_CODE_TEMPLATE.format(cod=cod))
             
             
             if Bank.DataBaseUser.query_two_factor(user_id, type_code=parameters.ID_CODE_TWO_FACTOR):
@@ -329,7 +333,7 @@ class Recover_Password_Request_Email(Resource):
             
             print(url_reset_password) #! using while email func is not working 
             
-            # function.send_email(email_user, layout_email = parameters.CONTENT_EMAIL_RECOVER_PASSWORD.format(token=token))
+            function.send_email(email_user, layout_email = parameters.CONTENT_EMAIL_RECOVER_PASSWORD.format(token=token))
             
             return {
                 "msg": "Email to reset password sent"
