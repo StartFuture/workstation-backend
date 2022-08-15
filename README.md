@@ -14,11 +14,11 @@ gunicorn -w 2 -b 127.0.0.1:8000 app:app
 
 - [ ] Documentation
 - [ ] Minor fixes
-- [ ] Create static data boxes
+- [ ] Create sql static data boxes
 - [X] New way to send email
-- [ ] New html inside emails * task
-- [ ] Deploy * task
+- [ ] New html inside emails
+- [ ] Deploy
 
 ## References
 
-* [Email html template](https://beefree.io/templates/)
+- [Email html template](https://beefree.io/templates/)
