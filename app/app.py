@@ -55,6 +55,11 @@ api.add_resource(users.GetUserInfo, "/user_info")
 api.add_resource(users.Recover_Password_Request_Email, "/password_reset")
 api.add_resource(users.Recover_Password, "/new_password")
 
+api.add_resource(users.UpdateUsername, "/update_username")
+api.add_resource(users.UpdateEmail, "/update_email")
+api.add_resource(users.UpdateCpf, "/update_cpf")
+api.add_resource(users.UpdateCellphone, "/update_cellphone")
+
 api.add_resource(box.ShowListBox, "/")
 api.add_resource(box.CreateBox, "/box/create_box")
 

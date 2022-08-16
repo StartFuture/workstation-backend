@@ -32,14 +32,14 @@ class CreateUser(Resource):
         
         argumentos = reqparse.RequestParser()
         
-        argumentos.add_argument('nome')
-        argumentos.add_argument('sobrenome')
-        argumentos.add_argument('data_aniversario')
-        argumentos.add_argument('sexo')
-        argumentos.add_argument('telefone')
-        argumentos.add_argument('email')
-        argumentos.add_argument('senha')
-        argumentos.add_argument('cpf_cnpj')
+        argumentos.add_argument('nome', required=True)
+        argumentos.add_argument('sobrenome', required=True)
+        argumentos.add_argument('data_aniversario', required=True)
+        argumentos.add_argument('sexo', required=True)
+        argumentos.add_argument('telefone', required=True)
+        argumentos.add_argument('email', required=True)
+        argumentos.add_argument('senha', required=True)
+        argumentos.add_argument('cpf_cnpj', required=True)
         
         dados = argumentos.parse_args()
         
@@ -56,9 +56,9 @@ class CreateUser(Resource):
                         dados['cpf_cnpj'])
             
             create = Bank.DataBaseUser.save_user(
-                name=user.name,
-                last_name=user.lastname,
-                email=user.email,
+                name=str(user.name).strip().lower(),
+                last_name=str(user.lastname).strip().lower(),
+                email=str(user.email).strip().lower(),
                 cellphone=user.phone,
                 birthdate=user.birthday,
                 password=user.password,
@@ -202,8 +202,143 @@ class GetUserInfo(Resource):
         return {
             'msg': 'Two auth is required'
         }, 400
+
+
+class UpdateUsername(Resource):
+    @jwt_required()
+    def put(self):
+        jwt_info = get_jwt()
         
+        if 'two_auth' in jwt_info:
+            if jwt_info['two_auth']:
+                argumentos = reqparse.RequestParser()
+                
+                argumentos.add_argument('name', required=True)
+                argumentos.add_argument('last_name', required=True)
+                
+                dados = argumentos.parse_args()
+
+                name = str(dados['name']).strip().lower()
+                last_name = str(dados['last_name']).strip().lower()
+
+                user_id = get_jwt_identity()
+
+                print(name, last_name, user_id)
+
+                user_info = Bank.DataBaseUser.update_username_by_id(id_user=user_id, new_name=name, new_lastname=last_name)
+                
+                return { 
+                    'msg': 'Username updated'
+                 }, 200
+            
+            else:
+                return {
+                    'msg': 'Two auth is required'
+                }, 400
+                
+        return {
+            'msg': 'Two auth is required'
+        }, 400
         
+class UpdateEmail(Resource):
+    @jwt_required()
+    def put(self):
+        jwt_info = get_jwt()
+        
+        if 'two_auth' in jwt_info:
+            if jwt_info['two_auth']:
+
+                argumentos = reqparse.RequestParser()
+                
+                argumentos.add_argument('email', required=True)
+                
+                dados = argumentos.parse_args()
+
+                email = str(dados['email']).strip().lower()
+
+                user_id = get_jwt_identity()
+
+                user_info = Bank.DataBaseUser.update_email_by_id(id_user=user_id, new_email=email)
+                
+                return { 
+                    'msg': 'Username updated'
+                 }, 200
+            
+            else:
+                return {
+                    'msg': 'Two auth is required'
+                }, 400
+                
+        return {
+            'msg': 'Two auth is required'
+        }, 400
+
+
+class UpdateCpf(Resource):
+    @jwt_required()
+    def put(self):
+        jwt_info = get_jwt()
+        
+        if 'two_auth' in jwt_info:
+            if jwt_info['two_auth']:
+
+                argumentos = reqparse.RequestParser()
+                
+                argumentos.add_argument('cpf', required=True)
+                
+                dados = argumentos.parse_args()
+
+                cpf = dados['cpf']
+
+                user_id = get_jwt_identity()
+
+                user_info = Bank.DataBaseUser.update_user_identification(id_user=user_id, identity=cpf)
+
+                return { 
+                    'msg': 'Username updated'
+                 }, 200
+            
+            else:
+                return {
+                    'msg': 'Two auth is required'
+                }, 400
+                
+        return {
+            'msg': 'Two auth is required'
+        }, 400
+
+class UpdateCellphone(Resource):
+    @jwt_required()
+    def put(self):
+        jwt_info = get_jwt()
+        
+        if 'two_auth' in jwt_info:
+            if jwt_info['two_auth']:
+
+                argumentos = reqparse.RequestParser()
+                
+                argumentos.add_argument('cellphone', required=True)
+                
+                dados = argumentos.parse_args()
+
+                cellphone = dados['cellphone']
+
+                user_id = get_jwt_identity()
+
+                user_info = Bank.DataBaseUser.update_cellphone_by_id(id_user=user_id, new_cell=cellphone)
+                
+                return { 
+                    'msg': 'Username updated'
+                 }, 200
+            
+            else:
+                return {
+                    'msg': 'Two auth is required'
+                }, 400
+                
+        return {
+            'msg': 'Two auth is required'
+        }, 400
         
         
 class TwoFactorLogin(Resource):
@@ -332,8 +467,7 @@ class Recover_Password_Request_Email(Resource):
             url_reset_password = f'{parameters.URL_FRONTEND}/user/reset_password?token={token}'
             
             print(url_reset_password) #! using while email func is not working 
-            
-            function.send_email(email_user, layout_email = parameters.CONTENT_EMAIL_RECOVER_PASSWORD.format(token=token))
+            function.send_email(email_user, layout_email = parameters.CONTENT_EMAIL_RECOVER_PASSWORD.format(url_reset_password=url_reset_password))
             
             return {
                 "msg": "Email to reset password sent"

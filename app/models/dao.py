@@ -3,6 +3,9 @@ import defs_workstation as Function
 import logging
 import os
 import re
+
+import parameters
+
 from parameters import NAME, PASSWORD, HOST, NAME_DB
 
 class DataBase:
@@ -114,13 +117,14 @@ class DataBaseUser:
     
     def save_user_identification(id_user, identity):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
-            if len(identity) == 11 or re.match(r"^\d{3}\.\d{3}\.\d{3}-\d{2}$", identity):
+            if len(identity) == 11 or re.match(parameters.REGEX_CPF, identity):
                 query_identity = f"""
                 insert into info_user_cpf(cpf, id_user)
                 values
                 ('{identity}', '{id_user}')
                 """
-            elif len(identity) == 14 or re.match(r"^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$", identity):
+
+            elif len(identity) == 14 or re.match(parameters.REGEX_CNPJ, identity):
                 query_identity = f"""
                 insert into info_user_cnpj(cnpj, id_user)
                 values
@@ -131,6 +135,33 @@ class DataBaseUser:
             
             cursor.execute(query_identity)
                 
+    def update_user_identification(id_user, identity):
+
+        '''
+        update usuarios set cpf = '{new_cpf}'
+                where id_user = '{id_user}';
+        '''
+
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if len(identity) == 11 or re.match(parameters.REGEX_CPF, identity):
+                query_identity = f"""
+                update info_user_cpf
+                set cpf = '{identity}'
+                where id_user = '{id_user}'
+                ;
+                """
+
+            elif len(identity) == 14 or re.match(parameters.REGEX_CNPJ, identity):
+                query_identity = f"""
+                update info_user_cnpj
+                set cnpj = '{identity}'
+                where id_user = '{id_user}'
+                ;
+                """
+            else:
+                raise Exception('error in identity')
+            
+            cursor.execute(query_identity)
 
     def save_user(name, last_name, email, cellphone, birthdate, password, identity, sex):
         # Save Basic infos
@@ -241,6 +272,30 @@ class DataBaseUser:
                 cursor.execute(f"""
                 update usuarios set nome = '{new_name}', sobrenome = '{new_lastname}', cpf = '{new_cpf}',
                 data_nascimento = '{new_birth_date}', telefone = '{new_cell}', email = '{new_email}'
+                where id_user = '{id_user}';        
+                """)
+    
+    def update_username_by_id(id_user, new_name, new_lastname):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""
+                update usuarios set nome = '{new_name}', sobrenome = '{new_lastname}'
+                where id_user = '{id_user}';        
+                """)
+    
+    def update_email_by_id(id_user, new_email):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""
+                update usuarios set email = '{new_email}'
+                where id_user = '{id_user}';        
+                """)
+    
+    def update_cellphone_by_id(id_user, new_cell):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""
+                update usuarios set telefone = '{new_cell}'
                 where id_user = '{id_user}';        
                 """)
             
