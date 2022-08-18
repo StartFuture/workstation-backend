@@ -12,13 +12,11 @@ gunicorn -w 2 -b 127.0.0.1:8000 app:app
 
 ## Todo
 
-- [ ] Documentation
 - [X] Minor fixes
 - [X] New way to send email
 - [X] Endpoints update user info
 - [X] Process input data
 - [ ] Create sql static data boxes
-- [ ] New html inside emails
 - [ ] Deploy
 
 ## References

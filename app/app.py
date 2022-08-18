@@ -60,7 +60,7 @@ api.add_resource(users.UpdateEmail, "/update_email")
 api.add_resource(users.UpdateCpf, "/update_cpf")
 api.add_resource(users.UpdateCellphone, "/update_cellphone")
 
-api.add_resource(box.ShowListBox, "/")
+api.add_resource(box.ShowListBox, "/box")
 api.add_resource(box.CreateBox, "/box/create_box")
 
 api.add_resource(schedule.ShowSchedule, "/meu_perfil/agendamentos") #mvp

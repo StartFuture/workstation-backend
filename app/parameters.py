@@ -51,6 +51,8 @@ CONTENT_EMAIL_CODE_BOX = """
     <h2>{code_box}</h2>
     """
 
+API_CONSULT_CEP = 'https://viacep.com.br/ws/{cep_code}/json/'
+
 REGEX_CPF = r'^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$'
 REGEX_CNPJ = r'^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$'
 

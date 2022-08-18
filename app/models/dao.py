@@ -381,12 +381,12 @@ class DataBaseBox:
                 if values:
                     return values
         
-    def add_box(id_address, name, price_hour, description, zone, width, heigth, depth, activated='Y'):
+    def add_box(id_address, name, price_hour, description, zone, width, heigth, depth, activated : bool = True):
         query = f"""
-        insert into box
-        values(default, '{id_address}', '{name}', 
+        insert into box(id_endereco, nome, preco_hora, descricao, ativo, largura, altura, comprimento, zone)
+        values('{id_address}', '{name}', 
         '{price_hour}', '{description}',
-        '{activated}', '{heigth}', '{width}', 
+        {activated}, '{heigth}', '{width}', 
         '{depth}', '{zone}');
         """
         
@@ -436,25 +436,31 @@ class DataBaseBox:
                 if values:
                     return values
     
-    def get_address_by_id(id_address):
+    def get_address_by_id(id_address : str):
         query = f"""
-        select * from endereco 
+        select id_endereco, cep, rua, numero, complemento, bairro, cidade, estado from endereco 
         where id_endereco = '{id_address}';
         """
         
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 cursor.execute(query)
-                values = cursor.fetchall()
+                values = cursor.fetchone()
                 if values:
                     return values
         
                 
-    def get_id_address_by_cep(cep):
+    def get_id_address_by_elements(cep, num, complement):
         query = f"""
-        select id_endereco 
-        from endereco 
-        where cep = '{cep}';
+            select id_endereco 
+            from endereco 
+            where
+            cep = '{cep}'
+            and
+            numero = {num}
+            and
+            complemento = '{complement}'
+            ;
         """
         
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
@@ -464,12 +470,12 @@ class DataBaseBox:
                 if values:
                     for value in values:
                         return value['id_endereco']
-    
+
 
     def add_address(cep, street, number, complement, district, city, state):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
-                cursor.execute(f"""insert into endereco values (default, '{cep}', '{street}', '{number}',
+                cursor.execute(f"""insert into endereco(cep, rua, numero, complemento, bairro, cidade, estado) values ('{cep}', '{street}', '{number}',
                 '{complement}', '{district}', '{city}', '{state}')""")
 
 
