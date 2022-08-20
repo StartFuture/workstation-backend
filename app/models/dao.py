@@ -370,7 +370,20 @@ class DataBaseBox:
                 if values:
                     return values
 
-    def show_all_boxes():
+    def get_boxes_by_id(id_box):
+        query = f"""
+        select * from box
+        where id_box = '{id_box}'
+        ;
+        """
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                values = cursor.fetchone()
+                if values:
+                    return values
+
+    def get_boxes_all():
         query = """
         select * from box;
         """

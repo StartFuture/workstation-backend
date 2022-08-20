@@ -6,8 +6,12 @@ from . import dao as Bank
         
 class ShowListBox(Resource):
     
-    def get(self):  
-        return process_data_box()
+    def get(self):
+        argumentos = reqparse.RequestParser()
+        argumentos.add_argument("id", default=None)
+
+        id_box = argumentos.parse_args()['id']
+        return process_data_box(id_box)
 
 class CreateBox(Resource):
     

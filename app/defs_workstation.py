@@ -174,50 +174,42 @@ def send_email(client_email, layout_email): # should return if the email was sen
         logging.warning('Email não enviado')
     
     
-def process_data_box():
-    boxes = DataBaseBox.show_all_boxes()
-    # address = DataBaseBox.show_address()
+def process_data_box(id_box):
 
-    list_infos_box = []
-    list_box = []
-    list_address = []
+    if id_box:
+        dict_box = DataBaseBox.get_boxes_by_id(id_box)
+        adress_box = DataBaseBox.get_address_by_id(dict_box['id_endereco'])
+        if adress_box:
+            dict_box_details = adress_box.copy()
+            dict_box_details['id_box'] = dict_box['id_box']
+            dict_box_details['nome'] = dict_box['nome']
+            dict_box_details['preco_hora'] = dict_box['preco_hora']
+            dict_box_details['descricao'] = dict_box['descricao']
+            dict_box_details['zone'] = dict_box['zone']
 
-    if boxes:
-        for dict_box in boxes:
-            adress_box = DataBaseBox.get_address_by_id(dict_box['id_endereco'])
-            if adress_box:
+        return dict_box_details
+    else:
+        boxes = DataBaseBox.get_boxes_all()
 
-                    dict_box_details = adress_box.copy()
-                    dict_box_details['nome'] = dict_box['nome']
-                    dict_box_details['preco_hora'] = dict_box['preco_hora']
-                    dict_box_details['descricao'] = dict_box['descricao']
+        list_infos_box = []
+        list_box = []
+        list_address = []
 
-                    list_box.append(dict_box_details)
-                    
-    #         list_infos_box.append(
-    #                 {
-    #                     "id_box": dict_box['id_box'], 
-    #                     "id_endereco": dict_box['id_endereco']
-    #                 }
-    #             )
+        if boxes:
+            for dict_box in boxes:
+                adress_box = DataBaseBox.get_address_by_id(dict_box['id_endereco'])
+                if adress_box:
 
-    # if address:
-    #     list_address.extend({
-    #                 "id_endereco": dict_address['id_endereco'],
-    #                 "cep": dict_address['cep'],
-    #                 "rua": dict_address['rua'],
-    #                 "numero": dict_address['numero'],
-    #                 "complemento": dict_address['complemento'],
-    #                 "bairro": dict_address['bairro'],
-    #                 "cidade": dict_address['cidade'],
-    #                 "estado": dict_address['estado']
-    #             } for dict_address in address)
-    # for box in list_box:
-    #     for info, address in itertools.product(list_infos_box, list_address):
-    #         if info['id_endereco'] == address['id_endereco']:
-    #             box['endereco'] = address
+                        dict_box_details = adress_box.copy()
+                        dict_box_details['id_box'] = dict_box['id_box']
+                        dict_box_details['nome'] = dict_box['nome']
+                        dict_box_details['preco_hora'] = dict_box['preco_hora']
+                        dict_box_details['descricao'] = dict_box['descricao']
+                        dict_box_details['zone'] = dict_box['zone']
 
-    return list_box
+                        list_box.append(dict_box_details)
+
+        return list_box
 
 def search_cep(cep : str) -> dict:
     cep = str(cep).strip().replace('.', '').replace('-', '')

@@ -1,40 +1,65 @@
 from flask_restful import Resource, reqparse
 from . import dao as Bank
 
+from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt_identity, get_jwt, verify_jwt_in_request
 
 class GenerateSchedule(Resource):
-    
+    @jwt_required()
     def post(self):
-        argumentos = reqparse.RequestParser()
         
-        argumentos.add_argument('data_inicio')
-        argumentos.add_argument('hora_inicio')
-        argumentos.add_argument('hora_fim')
-        argumentos.add_argument('data_fim')
-        argumentos.add_argument('id_box')
-        argumentos.add_argument('id_user')
+        jwt_info = get_jwt()
         
-        dados = argumentos.parse_args()
+        if 'two_auth' in jwt_info:
+            if jwt_info['two_auth']:
+                user_id = get_jwt_identity()
+
+                argumentos = reqparse.RequestParser()
+                
+                argumentos.add_argument('date_schedule')
+
+                argumentos.add_argument('array_schedule_times')
+
+                argumentos.add_argument('id_box')
+                
+                dados = argumentos.parse_args()
+
+                print(dados)
+                print(user_id)
+            
+                return {
+                    'msg': 'Schedule created'
+                }, 200
+            
+            else:
+                return {
+                    'msg': 'Two auth is required'
+                }, 400
+                
+        return {
+            'msg': 'Two auth is required'
+        }, 400
+
+        
     
-        available = Bank.Scheduling.verify_scheduling(start_date=dados['data_inicio'],
-                                                   id_box=dados['id_box'],
-                                                   final_date=dados['data_fim'],
-                                                   start_hour=dados['hora_inicio'],
-                                                   final_hour=dados['hora_fim'])
-        if available:
-            Bank.Scheduling.save_scheduling(dados['data_inicio'],
-                                            dados['hora_inicio'],
-                                            dados['hora_fim'],
-                                            dados['data_fim'],
-                                            dados['id_user'],
-                                            dados['id_box'])
-            return {
-                "msg": "sucessfull"
-            }
-        else:
-            return {
-                "msg": "agendamento indispinível"
-            }
+        # available = Bank.Scheduling.verify_scheduling(start_date=dados['data_inicio'],
+        #                                            id_box=dados['id_box'],
+        #                                            final_date=dados['data_fim'],
+        #                                            start_hour=dados['hora_inicio'],
+        #                                            final_hour=dados['hora_fim'])
+        # if available:
+        #     Bank.Scheduling.save_scheduling(dados['data_inicio'],
+        #                                     dados['hora_inicio'],
+        #                                     dados['hora_fim'],
+        #                                     dados['data_fim'],
+        #                                     dados['id_user'],
+        #                                     dados['id_box'])
+        #     return {
+        #         "msg": "sucessfull"
+        #     }
+        # else:
+        #     return {
+        #         "msg": "agendamento indispinível"
+        #     }
             
 
 class ShowSchedule(Resource):
