@@ -3,9 +3,10 @@ import re
 import smtplib
 import email.message
 import os
-from dotenv import load_dotenv
 import logging
 
+import requests
+from dotenv import load_dotenv
 
 import parameters
 from models.dao import DataBaseBox
@@ -18,6 +19,32 @@ def convert_cod_int(cod : str):
     else:
         return 0
 
+def convert_str_code(value_input : str) -> str:
+    value = str(value_input).strip().replace('.', '').replace('-', '')
+    
+    return value
+
+
+def convert_str_float(value_input : str) -> float:
+    value = str(value_input).strip().replace(',', '')
+    try:
+        value = float(value)
+    except:
+        logging.error(f'Error while converting value to float: {value_input}')
+        value = 0.0
+        
+    finally:
+        return value
+
+def convert_str_int(value_input : str) -> int:
+    value = str(value_input).strip().replace(',', '')
+    try:
+        value = int(value)
+    except:
+        logging.error(f'Error while converting value to int: {value_input}')
+        value = 0
+    finally:
+        return value
 
 def check(user):
     return bool(re.match(r"[a-zA-Z0-9\.]+@[a-z]+.[a-z]+.?b?r?", user))
@@ -147,45 +174,50 @@ def send_email(client_email, layout_email): # should return if the email was sen
         logging.warning('Email não enviado')
     
     
-def process_data_box():
-    boxes = DataBaseBox.show_all_boxes()
-    address = DataBaseBox.show_address()
+def process_data_box(id_box):
 
-    list_infos_box = []
-    list_box = []
-    list_address = []
+    if id_box:
+        dict_box = DataBaseBox.get_boxes_by_id(id_box)
+        adress_box = DataBaseBox.get_address_by_id(dict_box['id_endereco'])
+        if adress_box:
+            dict_box_details = adress_box.copy()
+            dict_box_details['id_box'] = dict_box['id_box']
+            dict_box_details['nome'] = dict_box['nome']
+            dict_box_details['preco_hora'] = dict_box['preco_hora']
+            dict_box_details['descricao'] = dict_box['descricao']
+            dict_box_details['zone'] = dict_box['zone']
 
-    if boxes:
-        for dict_box in boxes:
-            list_box.append(
-                {
-                    "nome": dict_box['nome'],
-                    "preco": dict_box['preco_hora'],
-                    "descricao": dict_box['descricao'],
-                    "endereco": {}
-                }
-            )
-            list_infos_box.append(
-                    {
-                        "id_box": dict_box['id_box'], 
-                        "id_endereco": dict_box['id_endereco']
-                    }
-                )
+        return dict_box_details
+    else:
+        boxes = DataBaseBox.get_boxes_all()
 
-    if address:
-        list_address.extend({
-                    "id_endereco": dict_address['id_endereco'],
-                    "cep": dict_address['cep'],
-                    "rua": dict_address['rua'],
-                    "numero": dict_address['numero'],
-                    "complemento": dict_address['complemento'],
-                    "bairro": dict_address['bairro'],
-                    "cidade": dict_address['cidade'],
-                    "estado": dict_address['estado']
-                } for dict_address in address)
-    for box in list_box:
-        for info, address in itertools.product(list_infos_box, list_address):
-            if info['id_endereco'] == address['id_endereco']:
-                box['endereco'] = address
+        list_infos_box = []
+        list_box = []
+        list_address = []
 
-    return list_box
+        if boxes:
+            for dict_box in boxes:
+                adress_box = DataBaseBox.get_address_by_id(dict_box['id_endereco'])
+                if adress_box:
+
+                        dict_box_details = adress_box.copy()
+                        dict_box_details['id_box'] = dict_box['id_box']
+                        dict_box_details['nome'] = dict_box['nome']
+                        dict_box_details['preco_hora'] = dict_box['preco_hora']
+                        dict_box_details['descricao'] = dict_box['descricao']
+                        dict_box_details['zone'] = dict_box['zone']
+
+                        list_box.append(dict_box_details)
+
+        return list_box
+
+def search_cep(cep : str) -> dict:
+    cep = str(cep).strip().replace('.', '').replace('-', '')
+    if len(cep) != 8 or not cep.isnumeric():
+        logging.error(f'error value received: {cep}')
+        raise ValueError('cep code should have 8 numeric characters')
+    result = requests.get(parameters.API_CONSULT_CEP.format(cep_code=cep))
+    if result.status_code == 200:
+        return result.json()
+    else:
+        return None

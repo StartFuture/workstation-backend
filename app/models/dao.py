@@ -3,6 +3,9 @@ import defs_workstation as Function
 import logging
 import os
 import re
+
+import parameters
+
 from parameters import NAME, PASSWORD, HOST, NAME_DB
 
 class DataBase:
@@ -114,13 +117,14 @@ class DataBaseUser:
     
     def save_user_identification(id_user, identity):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
-            if len(identity) == 11 or re.match(r"^\d{3}\.\d{3}\.\d{3}-\d{2}$", identity):
+            if len(identity) == 11 or re.match(parameters.REGEX_CPF, identity):
                 query_identity = f"""
                 insert into info_user_cpf(cpf, id_user)
                 values
                 ('{identity}', '{id_user}')
                 """
-            elif len(identity) == 14 or re.match(r"^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$", identity):
+
+            elif len(identity) == 14 or re.match(parameters.REGEX_CNPJ, identity):
                 query_identity = f"""
                 insert into info_user_cnpj(cnpj, id_user)
                 values
@@ -131,6 +135,33 @@ class DataBaseUser:
             
             cursor.execute(query_identity)
                 
+    def update_user_identification(id_user, identity):
+
+        '''
+        update usuarios set cpf = '{new_cpf}'
+                where id_user = '{id_user}';
+        '''
+
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if len(identity) == 11 or re.match(parameters.REGEX_CPF, identity):
+                query_identity = f"""
+                update info_user_cpf
+                set cpf = '{identity}'
+                where id_user = '{id_user}'
+                ;
+                """
+
+            elif len(identity) == 14 or re.match(parameters.REGEX_CNPJ, identity):
+                query_identity = f"""
+                update info_user_cnpj
+                set cnpj = '{identity}'
+                where id_user = '{id_user}'
+                ;
+                """
+            else:
+                raise Exception('error in identity')
+            
+            cursor.execute(query_identity)
 
     def save_user(name, last_name, email, cellphone, birthdate, password, identity, sex):
         # Save Basic infos
@@ -243,6 +274,30 @@ class DataBaseUser:
                 data_nascimento = '{new_birth_date}', telefone = '{new_cell}', email = '{new_email}'
                 where id_user = '{id_user}';        
                 """)
+    
+    def update_username_by_id(id_user, new_name, new_lastname):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""
+                update usuarios set nome = '{new_name}', sobrenome = '{new_lastname}'
+                where id_user = '{id_user}';        
+                """)
+    
+    def update_email_by_id(id_user, new_email):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""
+                update usuarios set email = '{new_email}'
+                where id_user = '{id_user}';        
+                """)
+    
+    def update_cellphone_by_id(id_user, new_cell):
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(f"""
+                update usuarios set telefone = '{new_cell}'
+                where id_user = '{id_user}';        
+                """)
             
 
     def new_password(id_user, newpassword):
@@ -315,7 +370,20 @@ class DataBaseBox:
                 if values:
                     return values
 
-    def show_all_boxes():
+    def get_boxes_by_id(id_box):
+        query = f"""
+        select * from box
+        where id_box = '{id_box}'
+        ;
+        """
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+                values = cursor.fetchone()
+                if values:
+                    return values
+
+    def get_boxes_all():
         query = """
         select * from box;
         """
@@ -326,12 +394,12 @@ class DataBaseBox:
                 if values:
                     return values
         
-    def add_box(id_address, name, price_hour, description, zone, width, heigth, depth, activated='Y'):
+    def add_box(id_address, name, price_hour, description, zone, width, heigth, depth, activated : bool = True):
         query = f"""
-        insert into box
-        values(default, '{id_address}', '{name}', 
+        insert into box(id_endereco, nome, preco_hora, descricao, ativo, largura, altura, comprimento, zone)
+        values('{id_address}', '{name}', 
         '{price_hour}', '{description}',
-        '{activated}', '{heigth}', '{width}', 
+        {activated}, '{heigth}', '{width}', 
         '{depth}', '{zone}');
         """
         
@@ -381,25 +449,31 @@ class DataBaseBox:
                 if values:
                     return values
     
-    def get_address_by_id(id_address):
+    def get_address_by_id(id_address : str):
         query = f"""
-        select * from endereco 
+        select id_endereco, cep, rua, numero, complemento, bairro, cidade, estado from endereco 
         where id_endereco = '{id_address}';
         """
         
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 cursor.execute(query)
-                values = cursor.fetchall()
+                values = cursor.fetchone()
                 if values:
                     return values
         
                 
-    def get_id_address_by_cep(cep):
+    def get_id_address_by_elements(cep, num, complement):
         query = f"""
-        select id_endereco 
-        from endereco 
-        where cep = '{cep}';
+            select id_endereco 
+            from endereco 
+            where
+            cep = '{cep}'
+            and
+            numero = {num}
+            and
+            complemento = '{complement}'
+            ;
         """
         
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
@@ -409,12 +483,12 @@ class DataBaseBox:
                 if values:
                     for value in values:
                         return value['id_endereco']
-    
+
 
     def add_address(cep, street, number, complement, district, city, state):
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
-                cursor.execute(f"""insert into endereco values (default, '{cep}', '{street}', '{number}',
+                cursor.execute(f"""insert into endereco(cep, rua, numero, complemento, bairro, cidade, estado) values ('{cep}', '{street}', '{number}',
                 '{complement}', '{district}', '{city}', '{state}')""")
 
 

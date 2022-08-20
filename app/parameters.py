@@ -36,8 +36,8 @@ CONTENT_EMAIL_CODE_TEMPLATE = """
 CONTENT_EMAIL_RECOVER_PASSWORD = """
     <h1>Ola,</h1>
     <h1>Copie o link abaixo e cole em outra aba para resetar a senha</h1>
-    <h2> <a href="{token}"> Clique aqui </a> <h2>
-    <h2> caso o link não funcione copie o seguinte url e cole no seu browser: <br>{token}</h2>    
+    <h2> <a href="{url_reset_password}"> Clique aqui </a> <h2>
+    <h2> caso o link não funcione copie o seguinte url e cole no seu browser: <br>{url_reset_password}</h2>    
     """
 
 CONTENT_EMAIL_REGISTER_COMPLETE = """
@@ -50,6 +50,11 @@ CONTENT_EMAIL_CODE_BOX = """
     <h1>Sua Código de acesso para a box é:</h1>
     <h2>{code_box}</h2>
     """
+
+API_CONSULT_CEP = 'https://viacep.com.br/ws/{cep_code}/json/'
+
+REGEX_CPF = r'^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$'
+REGEX_CNPJ = r'^\d{2}\.\d{3}\.\d{3}\/\d{4}\-\d{2}$'
 
 
 # NAME = 'root'

@@ -79,14 +79,15 @@ CREATE TABLE `box` (
   `nome` varchar(30) DEFAULT NULL,
   `preco_hora` double DEFAULT NULL,
   `descricao` text,
-  `ativo` enum('Y','N') DEFAULT NULL,
+  `ativo` tinyint(1) DEFAULT '1',
   `largura` double DEFAULT NULL,
   `altura` double DEFAULT NULL,
   `comprimento` double DEFAULT NULL,
+  `zone` varchar(20) NOT NULL,
   PRIMARY KEY (`id_box`),
   KEY `id_endereco` (`id_endereco`),
   CONSTRAINT `box_ibfk_1` FOREIGN KEY (`id_endereco`) REFERENCES `endereco` (`id_endereco`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb3;
 
 
 -- workstation.info_user_cnpj definition
@@ -138,5 +139,3 @@ DO
 DELETE FROM `workstation`.`two_auth` where TIME_TO_SEC((TIMEDIFF(now(), `date_register`))) > 120;
 
 ALTER EVENT `triger_delete_two_factor_code` ON  COMPLETION PRESERVE ENABLE;
-
-insert into tb_type_code(type_code, descript) values (1, 'login_two_auth'), (2, 'reset_password');
