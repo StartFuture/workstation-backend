@@ -58,7 +58,7 @@ class GenerateSchedule(Resource):
         #     }
         # else:
         #     return {
-        #         "msg": "agendamento indispinível"
+        #         "msg": "agendamento indisponível"
         #     }
             
 
