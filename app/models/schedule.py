@@ -15,11 +15,11 @@ class GenerateSchedule(Resource):
 
                 argumentos = reqparse.RequestParser()
                 
-                argumentos.add_argument('date_schedule')
+                argumentos.add_argument('date_schedule', required=True)
 
-                argumentos.add_argument('array_schedule_times')
+                argumentos.add_argument('array_schedule_times', type=list, required=True)
 
-                argumentos.add_argument('id_box')
+                argumentos.add_argument('id_box', required=True)
                 
                 dados = argumentos.parse_args()
 
