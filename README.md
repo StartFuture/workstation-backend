@@ -18,7 +18,7 @@ gunicorn -w 2 -b 127.0.0.1:8000 app:app
 - [X] Process input data
 - [X] Create sql static data boxes
 - [x] Recreate box get
-- [ ] Recreate Schedule
+- [X] Recreate Schedule
 - [ ] Deploy
 
 ## References
