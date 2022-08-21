@@ -366,7 +366,7 @@ class DataBaseBox:
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 cursor.execute(query)
-                values = cursor.fetchall()
+                values = cursor.fetchone()
                 if values:
                     return values
 
@@ -580,8 +580,8 @@ class Scheduling():
     def verify_scheduling(start_date, start_hour, final_hour, final_date, id_box):
         query = f"""
                 select * from locacao
-                where {start_date} >= datainicio and {final_date} <= datafim 
-                and {start_hour} >= horainicio or {final_hour} <= horafim
+                where '{start_date}' >= datainicio and '{final_date}' <= datafim 
+                and '{start_hour}' >= horainicio and '{final_hour}' <= horafim
                 and id_box = '{id_box}';
                 """
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
@@ -590,27 +590,36 @@ class Scheduling():
                 schedule = cursor.fetchall()
 
                 return not schedule
-            
-                
-
+    
     @staticmethod
-    def save_scheduling(start_date, start_hour, final_hour, final_date, id_user, id_box):
-
-        start_date, final_date = Function.date_conversor(start_date, final_date)
-        
-        query = f"""insert into locacao 
-                    values (default, {start_date},
-                    {start_hour},{final_hour},
-                    {final_date},{id_user},
-                    {id_box});
-                    """
-                    
+    def get_schedule_by_user_time_box(start_date, start_hour, final_hour, final_date, id_box, id_user):
+        query = f"""
+                select id_locacao from locacao
+                where '{start_date}' >= datainicio and '{final_date}' <= datafim 
+                and '{start_hour}' >= horainicio and '{final_hour}' <= horafim
+                and id_box = '{id_box}'
+                and id_user = '{id_user}'
+                limit 1
+                ;
+                """
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:
                 cursor.execute(query)
-                
-
-
+                schedule = cursor.fetchone()
+                if schedule:
+                    return schedule['id_locacao']
+                else:
+                    return None
+    @staticmethod
+    def save_scheduling(start_date, start_hour, final_hour, final_date, id_user, id_box):
+        
+        query = f"""insert into locacao(datainicio, horainicio, horafim, datafim, id_user, id_box) 
+                    values ('{start_date}','{start_hour}','{final_hour}','{final_date}','{id_user}','{id_box}');
+                 """
+        with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
+            if cursor:
+                cursor.execute(query)
+  
     @staticmethod
     def show_all_scheduling():
         
@@ -622,7 +631,6 @@ class Scheduling():
         
                 return cursor.fetchall()
         
-
     @staticmethod
     def show_scheduling_box(id_box):
         
@@ -640,7 +648,12 @@ class Scheduling():
     @staticmethod
     def show_scheduling_user(id_user):
         
-        query = f'select * from locacao where id_user = "{id_user}"'
+        # query = f'select datainicio, horainicio, horafim, datafim, id_user, id_box from locacao where id_user = "{id_user}"'
+        query = f'''select id_box, datainicio as data_schedule, JSON_ARRAYAGG(horainicio) as times_schedules from locacao
+        where id_user = {id_user}
+        GROUP by datainicio, id_box
+        order by data_schedule
+        ;'''
         
         with DataBase(NAME, PASSWORD, HOST, NAME_DB) as cursor:
             if cursor:

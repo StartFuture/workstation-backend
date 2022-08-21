@@ -4,6 +4,7 @@ import smtplib
 import email.message
 import os
 import logging
+from datetime import datetime
 
 import requests
 from dotenv import load_dotenv
@@ -145,12 +146,12 @@ def is_cpf(user):
     return bool(re.match(r"[0-9]{3}.[0-9]{3}.[0-9]{3}-[0-9]{2}", user))
 
 
-def date_conversor(start_date, final_date):
-    from datetime import datetime
-    start_date = datetime.strptime(start_date.replace('/','-'), '%d-%m-%Y').date()
-    final_date = datetime.strptime(final_date.replace('/','-'), '%d-%m-%Y').date()
-    return start_date, final_date
+def date_conversor(input_date, input_format_date='%d/%m/%Y', output_format_date='%Y-%m-%d'):
     
+    input_date = str(input_date).strip()
+    input_date = datetime.strptime(input_date, input_format_date).strftime(output_format_date)
+    
+    return input_date
 
 def send_email(client_email, layout_email): # should return if the email was sent
     msg = email.message.Message()

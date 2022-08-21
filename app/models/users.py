@@ -197,11 +197,11 @@ class GetUserInfo(Resource):
             else:
                 return {
                     'msg': 'Two auth is required'
-                }, 400
+                }, 401
                 
         return {
             'msg': 'Two auth is required'
-        }, 400
+        }, 401
 
 
 class UpdateUsername(Resource):
@@ -234,11 +234,11 @@ class UpdateUsername(Resource):
             else:
                 return {
                     'msg': 'Two auth is required'
-                }, 400
+                }, 401
                 
         return {
             'msg': 'Two auth is required'
-        }, 400
+        }, 401
         
 class UpdateEmail(Resource):
     @jwt_required()
@@ -267,11 +267,11 @@ class UpdateEmail(Resource):
             else:
                 return {
                     'msg': 'Two auth is required'
-                }, 400
+                }, 401
                 
         return {
             'msg': 'Two auth is required'
-        }, 400
+        }, 401
 
 
 class UpdateCpf(Resource):
@@ -301,11 +301,11 @@ class UpdateCpf(Resource):
             else:
                 return {
                     'msg': 'Two auth is required'
-                }, 400
+                }, 401
                 
         return {
             'msg': 'Two auth is required'
-        }, 400
+        }, 401
 
 class UpdateCellphone(Resource):
     @jwt_required()
@@ -334,11 +334,11 @@ class UpdateCellphone(Resource):
             else:
                 return {
                     'msg': 'Two auth is required'
-                }, 400
+                }, 401
                 
         return {
             'msg': 'Two auth is required'
-        }, 400
+        }, 401
         
         
 class TwoFactorLogin(Resource):
